@@ -79,4 +79,6 @@ gradlew
 gradlew.bat
 HELP.md
 settings.gradle
+# Ignore environment configuration files
 application.properties
+application.yml
