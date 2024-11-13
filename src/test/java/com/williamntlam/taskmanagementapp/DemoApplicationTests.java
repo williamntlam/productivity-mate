@@ -1,4 +1,4 @@
-package com.williamntlam.demo;
+package com.williamntlam.taskmanagementapp;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
