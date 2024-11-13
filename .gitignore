@@ -1,0 +1,74 @@
+# Ignore Gradle files
+.gradle/
+build/
+
+# Ignore temporary files created by the IDE
+*.iml
+.idea/
+*.iws
+*.swp
+*~.nib
+*.class
+*.jar
+*.war
+*.ear
+*.db
+*.tar.gz
+*.log
+*.tmp
+
+# Ignore macOS files
+.DS_Store
+
+# Ignore Windows files
+Thumbs.db
+Desktop.ini
+
+# Ignore IntelliJ IDEA files
+.idea
+*.iml
+out/
+
+# Ignore Eclipse files
+.project
+.classpath
+.settings/
+bin/
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore Linux file system files
+*.swp
+
+# Ignore Gradle wrapper files
+gradle-wrapper.jar
+!gradlew
+!gradlew.bat
+
+# Ignore Java build files
+target/
+bin/
+*.class
+*.jar
+*.war
+*.ear
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+*.lock
+
+# Ignore environment configuration files
+.env
+.env.local
+.env.*.local
+
+# Ignore node_modules (if you're using npm or Yarn in the project)
+node_modules/
+
+# Ignore logs
+logs/
+*.log
+*.out
+*.err
