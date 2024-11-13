@@ -45,6 +45,7 @@ bin/
 gradle-wrapper.jar
 !gradlew
 !gradlew.bat
+gradle
 
 # Ignore Java build files
 target/
@@ -72,3 +73,10 @@ logs/
 *.log
 *.out
 *.err
+
+build.gradle
+gradlew
+gradlew.bat
+HELP.md
+settings.gradle
+application.properties
