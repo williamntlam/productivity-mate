@@ -3,6 +3,7 @@ package com.williamntlam.taskmanagementapp.controller;
 import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,6 +23,7 @@ public class UserController {
 
     }
 
+    @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody User user) {
 
         userService.registerUser(user);
@@ -29,6 +31,7 @@ public class UserController {
 
     }
 
+    @PostMapping("/register/login")
     public ResponseEntity<String> loginUser(@RequestBody User user) {
 
         boolean isAuthenticated = userService.loginUser(user.getUsername(), user.getPassword());
