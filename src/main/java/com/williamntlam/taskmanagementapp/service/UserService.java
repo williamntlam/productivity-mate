@@ -5,8 +5,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import com.williamntlam.taskmanagementapp.model.User;
 import com.williamntlam.taskmanagementapp.repository.UserRepository;
 
-import java.util.Optional;
-
 @Service
 public class UserService {
     
@@ -32,7 +30,7 @@ public class UserService {
     }
 
     // Validate User Credentials
-    public boolean validateUserCredentials(String username, String rawPassword) {
+    public boolean loginUser(String username, String rawPassword) {
 
         User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
