@@ -31,7 +31,7 @@ public class UserController {
 
     }
 
-    @PostMapping("/register/login")
+    @PostMapping("/login")
     public ResponseEntity<String> loginUser(@RequestBody User user) {
 
         boolean isAuthenticated = userService.loginUser(user.getUsername(), user.getPassword());
