@@ -7,6 +7,9 @@ import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class JwtUtils {
     
     private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
