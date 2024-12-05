@@ -1,7 +1,7 @@
 package com.williamntlam.taskmanagementapp.config;
 
 import com.nimbusds.oauth2.sdk.auth.JWTAuthentication;
-import com.williamntlam.taskmanagementapp.util.JwtUtils;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import com.williamntlam.taskmanagementapp.filter.JwtAuthenticationFilter;
+import com.williamntlam.taskmanagementapp.utils.JwtUtils;
 
 @Configuration
 public class SecurityConfig {

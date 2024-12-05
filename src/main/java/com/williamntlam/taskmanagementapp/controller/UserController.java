@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.williamntlam.taskmanagementapp.service.UserService;
-import com.williamntlam.taskmanagementapp.util.JwtUtils;
+import com.williamntlam.taskmanagementapp.utils.JwtUtils;
 import com.williamntlam.taskmanagementapp.model.User;
 import java.util.Map;
 

@@ -1,4 +1,4 @@
-package com.williamntlam.taskmanagementapp.util;
+package com.williamntlam.taskmanagementapp.utils;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
