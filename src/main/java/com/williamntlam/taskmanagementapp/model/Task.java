@@ -3,13 +3,8 @@ package com.williamntlam.taskmanagementapp.model;
 import jakarta.persistence.*;
 import java.util.Date;
 
-enum TaskStatus {
-    PENDING, IN_PROGRESS, COMPLETED
-}
-
-enum TaskPriority {
-    LOW, MEDIUM, HIGH
-}
+import com.williamntlam.taskmanagementapp.utils.Enums.TaskPriority;
+import com.williamntlam.taskmanagementapp.utils.Enums.TaskStatus;
 
 @Entity
 @Table(name = "Tasks")

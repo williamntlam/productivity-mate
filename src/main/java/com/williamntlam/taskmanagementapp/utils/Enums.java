@@ -1,6 +1,6 @@
-package com.williamntlam.taskmanagementapp.util;
+package com.williamntlam.taskmanagementapp.utils;
 
-public class nums {
+public class Enums {
     
     // Task priorities
     public enum TaskPriority {

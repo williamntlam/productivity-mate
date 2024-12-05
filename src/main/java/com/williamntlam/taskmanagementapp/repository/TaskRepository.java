@@ -7,13 +7,8 @@ import org.springframework.stereotype.Repository;
 import java.util.Date;
 import java.util.List;
 
-enum TaskPriority {
-    LOW, MEDIUM, HIGH
-}
-
-enum TaskStatus {
-    PENDING, IN_PROGRESS, COMPLETED
-}
+import com.williamntlam.taskmanagementapp.utils.Enums.TaskPriority;
+import com.williamntlam.taskmanagementapp.utils.Enums.TaskStatus;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
