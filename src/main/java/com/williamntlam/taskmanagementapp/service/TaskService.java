@@ -5,6 +5,9 @@ import com.williamntlam.taskmanagementapp.repository.TaskRepository;
 import com.williamntlam.taskmanagementapp.utils.Enums.TaskPriority;
 import com.williamntlam.taskmanagementapp.utils.Enums.TaskStatus;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,9 +39,9 @@ public class TaskService {
 
     }
 
-    public List<Task> getAllTasks() {
+    public Page<Task> getAllTasks(Pageable pagetable) {
 
-        return taskRepository.findAll();
+        return taskRepository.findAll(pagetable);
 
     }
 
