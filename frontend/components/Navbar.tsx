@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Navbar() {
   return (
     <nav className="bg-gray-800 text-white px-4">
@@ -7,10 +9,19 @@ export default function Navbar() {
 
         {/* Navigation items */}
         <ul className="flex space-x-8">
-          <li className="hover:text-gray-400 cursor-pointer">Calendar</li>
-          <li className="hover:text-gray-400 cursor-pointer">Tasks</li>
-          <li className="hover:text-gray-400 cursor-pointer">Reminders</li>
-          <li className="hover:text-gray-400 cursor-pointer">Pomodoro Timer</li>
+          <li className="hover:text-gray-400 cursor-pointer">
+            {" "}
+            <Link href="/calendar">Calendar</Link>
+          </li>
+          <li className="hover:text-gray-400 cursor-pointer">
+            <Link href="/tasks">Tasks</Link>
+          </li>
+          <li className="hover:text-gray-400 cursor-pointer">
+            <Link href="/reminders">Reminders</Link>
+          </li>
+          <li className="hover:text-gray-400 cursor-pointer">
+            <Link href="/pomodoro-timer">Pomodoro Timer</Link>
+          </li>
         </ul>
 
         {/* Profile button on the right */}
