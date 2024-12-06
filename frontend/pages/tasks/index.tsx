@@ -45,9 +45,9 @@ export default function TasksPage() {
       <Navbar />
 
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 py-8 flex gap-8 h-full">
+      <main className="flex-1 flex max-w-full px-4 py-8 gap-8">
         {/* Left Side: Add Task */}
-        <section className="flex flex-col bg-gray-800 p-6 rounded-md w-1/2 h-full">
+        <section className="flex flex-col bg-gray-800 p-6 rounded-md flex-1 h-screen">
           <h2 className="text-2xl font-bold mb-6">Add a New Task</h2>
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2" htmlFor="title">
@@ -96,7 +96,7 @@ export default function TasksPage() {
         </section>
 
         {/* Right Side: Task List */}
-        <section className="flex flex-col bg-gray-800 p-6 rounded-md w-1/2 h-full">
+        <section className="flex flex-col bg-gray-800 p-6 rounded-md flex-1 h-screen">
           <h2 className="text-2xl font-bold mb-6">My Tasks</h2>
           <ul className="space-y-4 flex-1 overflow-y-auto">
             {tasks.map((task) => (
