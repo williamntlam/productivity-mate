@@ -13,9 +13,11 @@ export default function Home() {
           Simplify your productivity with tools like Calendar, Tasks, Reminders,
           and a Pomodoro Timer—all in one place.
         </p>
-        <button className="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-md text-lg font-medium">
-          <Link href="/tasks">Get Started</Link>
-        </button>
+        <Link href="/tasks">
+          <button className="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-md text-lg font-medium">
+            Get Started
+          </button>
+        </Link>
       </section>
 
       {/* Features Section */}
