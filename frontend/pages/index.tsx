@@ -1,4 +1,5 @@
 import Footer from "@/components/Footer";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -13,7 +14,7 @@ export default function Home() {
           and a Pomodoro Timer—all in one place.
         </p>
         <button className="bg-emerald-600 hover:bg-emerald-700 px-6 py-3 rounded-md text-lg font-medium">
-          Get Started
+          <Link href="/tasks">Get Started</Link>
         </button>
       </section>
 
