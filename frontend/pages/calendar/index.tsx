@@ -3,6 +3,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import Navbar from "@/components/Navbar";
 import { useState } from "react";
+import Footer from "@/components/Footer";
 
 const locales = {
   "en-US": require("date-fns/locale/en-US"),
@@ -61,13 +62,7 @@ export default function CalendarPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-center py-4">
-        <p className="text-gray-400">
-          &copy; {new Date().getFullYear()} ProductivityMate. All rights
-          reserved.
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 }

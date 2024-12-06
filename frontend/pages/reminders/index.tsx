@@ -1,3 +1,4 @@
+import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { useState } from "react";
 
@@ -156,13 +157,7 @@ export default function RemindersPage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-center py-4">
-        <p className="text-gray-400">
-          &copy; {new Date().getFullYear()} ProductivityMate. All rights
-          reserved.
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 }
