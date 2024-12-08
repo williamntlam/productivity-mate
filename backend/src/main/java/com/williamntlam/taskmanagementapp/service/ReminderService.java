@@ -32,4 +32,69 @@ public class ReminderService {
 
     }
 
+    public Reminder saveReminder(Reminder reminder) {
+
+        return reminderRepository.save(reminder);
+
+    }
+
+    public void deleteReminder(Long id) {
+
+        if (reminderRepository.existsById(id)) {
+
+            reminderRepository.deleteById(id);
+
+        }
+
+        else {
+
+            throw new IllegalArgumentException("Reminder with ID " + id + " does not exist.");
+
+        }
+
+    }
+
+    public List<Reminder> getRemindersByStatus(String status) {
+
+        return reminderRepository.findByStatus(status);
+
+    }
+
+    public List<Reminder> getOverdueReminders(Date currentDate) {
+
+        return reminderRepository.findByReminderDateBefore(currentDate);
+
+    }
+
+    public List<Reminder> getRemindersByRepeatFrequency(Integer repeatFrequencyDays) {
+
+        return reminderRepository.findByRepeatFrequencyDays(repeatFrequencyDays);
+
+    }
+
+    public void updateNextReminderDay(Reminder reminder) {
+
+        if (reminder.getRepeatFrequencyDays() != null) {
+
+            Date currentReminderDate = reminder.getReminderDate();
+            Integer repeatFrequencyDays = reminder.getRepeatFrequencyDays();
+
+            Date nextReminderDate = calculateNextReminderDate(currentReminderDate, repeatFrequencyDays);
+
+            reminder.setReminderDate(nextReminderDate);
+            reminderRepository.save(reminder);
+
+        }
+
+    }
+
+    private Date calculateNextReminderDate(Date currentReminderDate, int repeatFrequencyDays) {
+
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        calendar.setTime(currentReminderDate);
+        calendar.add(java.util.Calendar.DAY_OF_YEAR, repeatFrequencyDays);
+        return calendar.getTime();
+
+    }
+
 }
