@@ -5,77 +5,66 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "pomodoro_settings")
 public class PomodoroSettings {
- 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    private User user;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private int workDuration;
-    private int breakDuration;
-    private boolean notificationsEnabled;
+  @OneToOne
+  @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
+  private User user;
 
-    public Long getId() {
+  private int workDuration;
+  private int breakDuration;
+  private boolean notificationsEnabled;
 
-        return this.id;
+  public Long getId() {
 
-    }
+    return this.id;
+  }
 
-    public void setId(Long id) {
+  public void setId(Long id) {
 
-        this.id = id;
+    this.id = id;
+  }
 
-    }
+  public User getUser() {
 
-    public User getUser() {
+    return this.user;
+  }
 
-        return this.user;
+  public void setUser(User user) {
 
-    }
+    this.user = user;
+  }
 
-    public void setUser(User user) {
+  public int getWorkDuration() {
 
-        this.user = user;
+    return this.workDuration;
+  }
 
-    }
+  public void setWorkDuration(int workDuration) {
 
-    public int getWorkDuration() {
+    this.workDuration = workDuration;
+  }
 
-        return this.workDuration;
+  public int getBreakDuration() {
 
-    }
+    return this.breakDuration;
+  }
 
-    public void setWorkDuration(int workDuration) {
+  public void setBreakDuration(int breakDuration) {
 
-        this.workDuration = workDuration;
+    this.breakDuration = breakDuration;
+  }
 
-    }
+  public boolean isNotificationsEnabled() {
 
-    public int getBreakDuration() {
+    return this.notificationsEnabled;
+  }
 
-        return this.breakDuration;
+  public void setNotificationsEnabled(boolean notificationsEnabled) {
 
-    }
-
-    public void setBreakDuration(int breakDuration) {
-
-        this.breakDuration = breakDuration;
-
-    }
-
-    public boolean isNotificationsEnabled() {
-
-        return this.notificationsEnabled;
-
-    }
-
-    public void setNotificationsEnabled(boolean notificationsEnabled) {
-
-        this.notificationsEnabled = notificationsEnabled;
-
-    }
-
+    this.notificationsEnabled = notificationsEnabled;
+  }
 }
