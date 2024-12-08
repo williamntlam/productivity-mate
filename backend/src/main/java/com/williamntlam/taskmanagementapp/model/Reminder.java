@@ -1,13 +1,12 @@
 package com.williamntlam.taskmanagementapp.model;
 
-import com.williamntlam.taskmanagementapp.utils.Enums.TaskPriority;
-import com.williamntlam.taskmanagementapp.utils.Enums.TaskStatus;
+import com.williamntlam.taskmanagementapp.utils.Enums.ReminderStatus;
 import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "Tasks")
-public class Task {
+@Table(name = "Reminders")
+public class Reminder {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,14 +20,14 @@ public class Task {
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private TaskStatus status;
+  private ReminderStatus status;
 
-  @Enumerated(EnumType.STRING)
+  @Temporal(TemporalType.TIMESTAMP)
   @Column(nullable = false)
-  private TaskPriority priority;
+  private Date reminderDate;
 
-  @Temporal(TemporalType.DATE)
-  private Date dueDate;
+  @Column(nullable = true)
+  private Integer repeatFrequencyDays;
 
   @Temporal(TemporalType.TIMESTAMP)
   @Column(nullable = false, updatable = false)
@@ -39,26 +38,24 @@ public class Task {
   @org.hibernate.annotations.UpdateTimestamp
   private Date updatedDate;
 
-  public Task() {}
+  public Reminder() {}
 
-  public Task(
-      String title, String description, TaskStatus status, TaskPriority priority, Date dueDate) {
-
+  public Reminder(
+      String title,
+      String description,
+      ReminderStatus status,
+      Date reminderDate,
+      Integer repeatFrequencyDays) {
     this.title = title;
     this.description = description;
     this.status = status;
-    this.priority = priority;
-    this.dueDate = dueDate;
+    this.reminderDate = reminderDate;
+    this.repeatFrequencyDays = repeatFrequencyDays;
   }
 
   public long getId() {
 
-    return id;
-  }
-
-  public void setId(long id) {
-
-    this.id = id;
+    return this.id;
   }
 
   public String getTitle() {
@@ -81,34 +78,34 @@ public class Task {
     this.description = description;
   }
 
-  public TaskStatus getStatus() {
+  public ReminderStatus getStatus() {
 
     return this.status;
   }
 
-  public void setStatus(TaskStatus status) {
+  public void setStatus(ReminderStatus status) {
 
     this.status = status;
   }
 
-  public TaskPriority getPriority() {
+  public Date getReminderDate() {
 
-    return this.priority;
+    return this.reminderDate;
   }
 
-  public void setPriority(TaskPriority priority) {
+  public void setReminderDate(Date reminderDate) {
 
-    this.priority = priority;
+    this.reminderDate = reminderDate;
   }
 
-  public Date getDueDate() {
+  public Integer getRepeatFrequencyDays() {
 
-    return dueDate;
+    return this.repeatFrequencyDays;
   }
 
-  public void setDueDate(Date dueDate) {
+  public void setRepeatFrequencyDays(Integer repeatFrequencyDays) {
 
-    this.dueDate = dueDate;
+    this.repeatFrequencyDays = repeatFrequencyDays;
   }
 
   public Date getCreationDate() {

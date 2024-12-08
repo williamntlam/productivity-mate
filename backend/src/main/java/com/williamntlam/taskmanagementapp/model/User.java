@@ -1,56 +1,49 @@
 package com.williamntlam.taskmanagementapp.model;
 
+import jakarta.persistence.*;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.*;
 import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 @Entity
 @Table(name = "Users") // Rename the table to 'users'
 public class User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String username;
-    private String password;
+  private String username;
+  private String password;
 
-    public Long getId() {
+  public Long getId() {
 
-        return id;
+    return id;
+  }
 
-    }
+  public void setId(Long id) {
 
-    public void setId(Long id) {
+    this.id = id;
+  }
 
-        this.id = id;
+  public String getUsername() {
 
-    }
+    return username;
+  }
 
-    public String getUsername() {
+  public void setUsername(String username) {
 
-        return username;
+    this.username = username;
+  }
 
-    }
+  public String getPassword() {
 
-    public void setUsername(String username) {
+    return password;
+  }
 
-        this.username = username;
+  public void setPassword(String password) {
 
-    }
-
-    public String getPassword() {
-
-        return password;
-
-    }
-
-    public void setPassword(String password) {
-
-        this.password = password;
-
-    }
-
+    this.password = password;
+  }
 }
