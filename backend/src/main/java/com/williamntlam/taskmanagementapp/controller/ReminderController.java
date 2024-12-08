@@ -50,7 +50,6 @@ public class ReminderController {
     if (existingReminder == null) {
       return ResponseEntity.notFound().build();
     }
-    updatedReminder.setId(id); // Ensure the ID remains consistent
     Reminder savedReminder = reminderService.saveReminder(updatedReminder);
     return ResponseEntity.ok(savedReminder);
   }

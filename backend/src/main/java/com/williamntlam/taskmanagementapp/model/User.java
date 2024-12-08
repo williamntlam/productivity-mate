@@ -14,6 +14,9 @@ public class User {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+  private PomodoroSettings pomodoroSettings;
+
   private String username;
   private String password;
 
