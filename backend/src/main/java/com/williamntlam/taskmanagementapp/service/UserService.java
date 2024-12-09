@@ -32,9 +32,14 @@ public class UserService {
 
     User user =
         userRepository
-            .findByUsername(username)
+            .findByEmail(username)
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
     return passwordEncoder.matches(rawPassword, user.getPassword());
   }
+
+  public boolean emailExists(String email) {
+    return userRepository.findByEmail(email).isPresent();
+}
+
 }

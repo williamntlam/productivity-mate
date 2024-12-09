@@ -26,37 +26,35 @@ public class UserController {
   }
 
   @PostMapping("/register")
-  public ResponseEntity<Map<String, String>> registerUser(@RequestBody User user) {
-
-    // Check if the email is already in use
+public ResponseEntity<Map<String, String>> registerUser(@RequestBody User user) {
+    // Check if email is already in use
     if (userService.emailExists(user.getEmail())) {
-      Map<String, String> response = new HashMap<>();
-      response.put("status", "error");
-      response.put("message", "Email is already in use");
-      return ResponseEntity.status(HttpStatus.CONFLICT).body(response); // HTTP 409 Conflict
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "error");
+        response.put("message", "Email is already in use");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response); // HTTP 409 Conflict
     }
 
-    // Proceed with registration
+    // Register the user
     userService.registerUser(user);
-    String token = jwtUtils.generateToken(user.getUsername());
+    String token = jwtUtils.generateToken(user.getEmail());
 
-    // Wrap the response in a Map (or use a custom DTO)
+    // Response
     Map<String, String> response = new HashMap<>();
     response.put("status", "success");
     response.put("message", "User registered successfully");
     response.put("token", token);
-
-    return ResponseEntity.ok(response); // Returns as JSON
-  }
+    return ResponseEntity.ok(response);
+}
 
   @PostMapping("/login")
   public ResponseEntity<Map<String, String>> loginUser(@RequestBody User user) {
 
-    boolean isAuthenticated = userService.loginUser(user.getUsername(), user.getPassword());
+    boolean isAuthenticated = userService.loginUser(user.getEmail(), user.getPassword());
 
     if (isAuthenticated) {
 
-      String token = jwtUtils.generateToken(user.getUsername());
+      String token = jwtUtils.generateToken(user.getEmail());
       Map<String, String> response = new HashMap<>();
       response.put("status", "success");
       response.put("message", "Login successful");
