@@ -39,6 +39,10 @@ public class Task {
   @org.hibernate.annotations.UpdateTimestamp
   private Date updatedDate;
 
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
+
   public Task() {}
 
   public Task(
