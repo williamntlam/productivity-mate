@@ -28,6 +28,15 @@ public class UserController {
   @PostMapping("/register")
   public ResponseEntity<Map<String, String>> registerUser(@RequestBody User user) {
 
+    // Check if the email is already in use
+    if (userService.emailExists(user.getEmail())) {
+      Map<String, String> response = new HashMap<>();
+      response.put("status", "error");
+      response.put("message", "Email is already in use");
+      return ResponseEntity.status(HttpStatus.CONFLICT).body(response); // HTTP 409 Conflict
+    }
+
+    // Proceed with registration
     userService.registerUser(user);
     String token = jwtUtils.generateToken(user.getUsername());
 

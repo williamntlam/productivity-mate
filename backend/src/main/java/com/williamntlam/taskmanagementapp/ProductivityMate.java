@@ -1,15 +1,11 @@
 package com.williamntlam.taskmanagementapp;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
 import com.williamntlam.taskmanagementapp.utils.Db;
+import java.sql.Connection;
+import java.sql.SQLException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import java.sql.Connection;
-import java.sql.SQLException;
 
 @SpringBootApplication
 public class ProductivityMate {
@@ -20,7 +16,6 @@ public class ProductivityMate {
   public ProductivityMate(Db db) {
 
     this.db = db;
-
   }
 
   public static void main(String[] args) {
@@ -29,12 +24,11 @@ public class ProductivityMate {
 
   @Autowired
   public void initializeDatabase() {
-      try (Connection connection = db.getConnection()) {
-          System.out.println("Database connected: " + connection.getMetaData().getURL());
-      } catch (SQLException e) {
-          System.err.println("Failed to connect to the database.");
-          e.printStackTrace();
-      }
+    try (Connection connection = db.getConnection()) {
+      System.out.println("Database connected: " + connection.getMetaData().getURL());
+    } catch (SQLException e) {
+      System.err.println("Failed to connect to the database.");
+      e.printStackTrace();
+    }
   }
-
 }

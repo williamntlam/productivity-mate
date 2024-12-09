@@ -17,7 +17,8 @@ public class User {
   @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
   private PomodoroSettings pomodoroSettings;
 
-  private String username;
+  private String email;
+  private String name;
   private String password;
 
   public Long getId() {
@@ -30,14 +31,24 @@ public class User {
     this.id = id;
   }
 
-  public String getUsername() {
+  public String getEmail() {
 
-    return username;
+    return email;
   }
 
-  public void setUsername(String username) {
+  public void setEmail(String email) {
 
-    this.username = username;
+    this.email = email;
+  }
+
+  public String getName() {
+
+    return name;
+  }
+
+  public void setName(String name) {
+
+    this.name = name;
   }
 
   public String getPassword() {
