@@ -36,8 +36,7 @@ public class TaskController {
   @PostMapping
 public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
     // Fetch the user based on the userId
-    User user = userService.findById(task.getUserId())
-                           .orElseThrow(() -> new RuntimeException("User not found"));
+    User user = userService.findById(task.getUserId());
 
     // Associate the user with the task
     task.setUser(user);
