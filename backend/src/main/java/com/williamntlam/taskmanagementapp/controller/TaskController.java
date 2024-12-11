@@ -15,6 +15,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -71,14 +72,14 @@ public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
   }
 
   @GetMapping("due-before")
-  public ResponseEntity<List<Task>> getTasksDueBefore(@RequestParam("date") Date date) {
+  public ResponseEntity<List<Task>> getTasksDueBefore(@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
 
     List<Task> tasks = taskService.getTasksDueBefore(date);
     return ResponseEntity.ok(tasks);
   }
 
   @GetMapping("due-after")
-  public ResponseEntity<List<Task>> getTasksDueAfter(@RequestParam("date") Date date) {
+  public ResponseEntity<List<Task>> getTasksDueAfter(@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
 
     List<Task> tasks = taskService.getTasksDueAfter(date);
     return ResponseEntity.ok(tasks);
