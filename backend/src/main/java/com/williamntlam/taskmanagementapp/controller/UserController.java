@@ -26,13 +26,13 @@ public class UserController {
   }
 
   @PostMapping("/register")
-public ResponseEntity<Map<String, String>> registerUser(@RequestBody User user) {
+  public ResponseEntity<Map<String, String>> registerUser(@RequestBody User user) {
     // Check if email is already in use
     if (userService.emailExists(user.getEmail())) {
-        Map<String, String> response = new HashMap<>();
-        response.put("status", "error");
-        response.put("message", "Email is already in use");
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(response); // HTTP 409 Conflict
+      Map<String, String> response = new HashMap<>();
+      response.put("status", "error");
+      response.put("message", "Email is already in use");
+      return ResponseEntity.status(HttpStatus.CONFLICT).body(response); // HTTP 409 Conflict
     }
 
     // Register the user
@@ -45,7 +45,7 @@ public ResponseEntity<Map<String, String>> registerUser(@RequestBody User user) 
     response.put("message", "User registered successfully");
     response.put("token", token);
     return ResponseEntity.ok(response);
-}
+  }
 
   @PostMapping("/login")
   public ResponseEntity<Map<String, String>> loginUser(@RequestBody User user) {

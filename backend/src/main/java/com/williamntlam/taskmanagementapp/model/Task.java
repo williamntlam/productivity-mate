@@ -43,8 +43,7 @@ public class Task {
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
-  @Transient
-  private Long userId;
+  @Transient private Long userId;
 
   public Task() {}
 
@@ -63,7 +62,7 @@ public class Task {
   }
 
   public void setUserId(Long userId) {
-      this.userId = userId;
+    this.userId = userId;
   }
 
   public long getId() {
@@ -139,13 +138,10 @@ public class Task {
   public void setUser(User user) {
 
     this.user = user;
-
   }
 
   public User getUser() {
 
     return this.user;
-
   }
-
 }

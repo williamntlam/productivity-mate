@@ -31,11 +31,10 @@ public class TaskController {
 
     this.taskService = taskService;
     this.userService = userService;
-
   }
 
   @PostMapping
-public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
+  public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
     // Fetch the user based on the userId
     User user = userService.findById(task.getUserId());
 
@@ -46,7 +45,7 @@ public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
     Task createdTask = taskService.createTask(task);
 
     return ResponseEntity.ok(createdTask);
-}
+  }
 
   @GetMapping("/{id}")
   public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
@@ -72,14 +71,16 @@ public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
   }
 
   @GetMapping("due-before")
-  public ResponseEntity<List<Task>> getTasksDueBefore(@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
+  public ResponseEntity<List<Task>> getTasksDueBefore(
+      @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
 
     List<Task> tasks = taskService.getTasksDueBefore(date);
     return ResponseEntity.ok(tasks);
   }
 
   @GetMapping("due-after")
-  public ResponseEntity<List<Task>> getTasksDueAfter(@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
+  public ResponseEntity<List<Task>> getTasksDueAfter(
+      @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
 
     List<Task> tasks = taskService.getTasksDueAfter(date);
     return ResponseEntity.ok(tasks);
