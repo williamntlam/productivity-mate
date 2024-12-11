@@ -16,6 +16,12 @@ public class UserService {
     this.userRepository = userRepository;
     this.passwordEncoder = new BCryptPasswordEncoder();
   }
+  
+  public User findById(Long userId) {
+    return userRepository.findById(userId)
+                         .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
+}
+
 
   // Create User for registration
   public User registerUser(User user) {
@@ -40,6 +46,6 @@ public class UserService {
 
   public boolean emailExists(String email) {
     return userRepository.findByEmail(email).isPresent();
-}
+  }
 
 }

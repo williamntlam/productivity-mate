@@ -1,7 +1,9 @@
 package com.williamntlam.taskmanagementapp.controller;
 
 import com.williamntlam.taskmanagementapp.model.Task;
+import com.williamntlam.taskmanagementapp.model.User;
 import com.williamntlam.taskmanagementapp.service.TaskService;
+import com.williamntlam.taskmanagementapp.service.UserService;
 import com.williamntlam.taskmanagementapp.utils.Enums.TaskPriority;
 import com.williamntlam.taskmanagementapp.utils.Enums.TaskStatus;
 import jakarta.validation.Valid;
@@ -21,19 +23,30 @@ import org.springframework.web.bind.annotation.*;
 public class TaskController {
 
   private final TaskService taskService;
+  private final UserService userService;
 
   @Autowired
-  public TaskController(TaskService taskService) {
+  public TaskController(TaskService taskService, UserService userService) {
 
     this.taskService = taskService;
+    this.userService = userService;
+
   }
 
   @PostMapping
-  public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
+public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
+    // Fetch the user based on the userId
+    User user = userService.findById(task.getUserId())
+                           .orElseThrow(() -> new RuntimeException("User not found"));
 
+    // Associate the user with the task
+    task.setUser(user);
+
+    // Save the task
     Task createdTask = taskService.createTask(task);
+
     return ResponseEntity.ok(createdTask);
-  }
+}
 
   @GetMapping("/{id}")
   public ResponseEntity<Task> getTaskById(@PathVariable Long id) {

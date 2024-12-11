@@ -43,6 +43,9 @@ public class Task {
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
+  @Transient
+  private Long userId;
+
   public Task() {}
 
   public Task(
@@ -53,6 +56,14 @@ public class Task {
     this.status = status;
     this.priority = priority;
     this.dueDate = dueDate;
+  }
+
+  public Long getUserId() {
+    return userId;
+  }
+
+  public void setUserId(Long userId) {
+      this.userId = userId;
   }
 
   public long getId() {
@@ -124,4 +135,17 @@ public class Task {
 
     return this.updatedDate;
   }
+
+  public void setUser(User user) {
+
+    this.user = user;
+
+  }
+
+  public User getUser() {
+
+    return this.user;
+
+  }
+
 }
