@@ -12,8 +12,7 @@ public class Reminder {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private long id;
 
-  @Transient
-  private Long userId;
+  @Transient private Long userId;
 
   @Column(nullable = false, length = 100)
   private String title;
@@ -128,13 +127,10 @@ public class Reminder {
   public Long getUserId() {
 
     return this.userId;
-
   }
 
   public void setUserId(Long userId) {
 
     this.userId = userId;
-    
   }
-
 }

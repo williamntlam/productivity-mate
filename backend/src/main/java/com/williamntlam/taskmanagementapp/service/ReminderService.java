@@ -1,7 +1,9 @@
 package com.williamntlam.taskmanagementapp.service;
 
 import com.williamntlam.taskmanagementapp.model.Reminder;
+import com.williamntlam.taskmanagementapp.model.User;
 import com.williamntlam.taskmanagementapp.repository.ReminderRepository;
+import com.williamntlam.taskmanagementapp.repository.UserRepository;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -11,10 +13,12 @@ import org.springframework.stereotype.Service;
 public class ReminderService {
 
   private final ReminderRepository reminderRepository;
+  private final UserRepository userRepository;
 
-  public ReminderService(ReminderRepository reminderRepository) {
+  public ReminderService(ReminderRepository reminderRepository, UserRepository userRepository) {
 
     this.reminderRepository = reminderRepository;
+    this.userRepository = userRepository;
   }
 
   public List<Reminder> getAllReminders() {
@@ -30,6 +34,14 @@ public class ReminderService {
 
   public Reminder saveReminder(Reminder reminder) {
 
+    User user =
+        userRepository
+            .findById(reminder.getUserId())
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "User not found with ID: " + reminder.getUserId()));
+    reminder.setUserId(user.getId());
     return reminderRepository.save(reminder);
   }
 
