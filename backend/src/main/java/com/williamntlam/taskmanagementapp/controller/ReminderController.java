@@ -5,6 +5,8 @@ import com.williamntlam.taskmanagementapp.model.Task;
 import com.williamntlam.taskmanagementapp.model.User;
 import com.williamntlam.taskmanagementapp.service.ReminderService;
 import com.williamntlam.taskmanagementapp.service.UserService;
+import com.williamntlam.taskmanagementapp.utils.Enums.ReminderStatus;
+
 import java.util.Date;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -74,7 +76,7 @@ public class ReminderController {
   }
 
   @GetMapping("/status/{status}")
-  public ResponseEntity<List<Reminder>> getRemindersByStatus(@PathVariable String status) {
+  public ResponseEntity<List<Reminder>> getRemindersByStatus(@PathVariable ReminderStatus status) {
     List<Reminder> reminders = reminderService.getRemindersByStatus(status);
     return ResponseEntity.ok(reminders);
   }
