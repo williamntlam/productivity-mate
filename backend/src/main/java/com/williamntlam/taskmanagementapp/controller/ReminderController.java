@@ -1,7 +1,10 @@
 package com.williamntlam.taskmanagementapp.controller;
 
 import com.williamntlam.taskmanagementapp.model.Reminder;
+import com.williamntlam.taskmanagementapp.model.Task;
+import com.williamntlam.taskmanagementapp.model.User;
 import com.williamntlam.taskmanagementapp.service.ReminderService;
+import com.williamntlam.taskmanagementapp.service.UserService;
 import java.util.Date;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +15,12 @@ import org.springframework.web.bind.annotation.*;
 public class ReminderController {
 
   private final ReminderService reminderService;
+  private final UserService userService;
 
-  public ReminderController(ReminderService reminderService) {
+  public ReminderController(ReminderService reminderService, UserService userService) {
 
     this.reminderService = reminderService;
+    this.userService = userService;
   }
 
   @GetMapping
@@ -40,8 +45,15 @@ public class ReminderController {
   @PostMapping
   public ResponseEntity<Reminder> createReminder(@RequestBody Reminder reminder) {
 
-    Reminder savedReminder = reminderService.saveReminder(reminder);
-    return ResponseEntity.ok(savedReminder);
+    User user = userService.findById(reminder.getUserId());
+
+    // Associate the user with the task
+    reminder.setUserId(user.getId());
+
+    // Save the task
+    Reminder createdReminder = reminderService.saveReminder(reminder);
+
+    return ResponseEntity.ok(createdReminder);
   }
 
   @PutMapping("/{id}")
