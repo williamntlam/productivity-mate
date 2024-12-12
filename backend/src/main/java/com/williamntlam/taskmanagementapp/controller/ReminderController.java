@@ -37,6 +37,7 @@ public class ReminderController {
     return ResponseEntity.ok(reminder);
   }
 
+  @PostMapping
   public ResponseEntity<Reminder> createReminder(@RequestBody Reminder reminder) {
 
     Reminder savedReminder = reminderService.saveReminder(reminder);
