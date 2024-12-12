@@ -36,12 +36,12 @@ public class ReminderService {
 
     User user =
         userRepository
-            .findById(reminder.getUserId())
+            .findById(reminder.getUser().getId())
             .orElseThrow(
                 () ->
                     new IllegalArgumentException(
-                        "User not found with ID: " + reminder.getUserId()));
-    reminder.setUserId(user.getId());
+                        "User not found with ID: " + reminder.getUser().getId()));
+    reminder.setUser(user);
     return reminderRepository.save(reminder);
   }
 

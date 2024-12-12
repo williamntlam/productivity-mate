@@ -48,7 +48,7 @@ public class ReminderController {
     User user = userService.findById(reminder.getUserId());
 
     // Associate the user with the task
-    reminder.setUserId(user.getId());
+    reminder.setUser(user);
 
     // Save the task
     Reminder createdReminder = reminderService.saveReminder(reminder);

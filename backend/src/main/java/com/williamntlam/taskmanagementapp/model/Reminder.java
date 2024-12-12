@@ -124,13 +124,22 @@ public class Reminder {
     return this.updatedDate;
   }
 
-  public Long getUserId() {
+  public User getUser() {
 
-    return this.userId;
+    return this.user;
+  }
+
+  public void setUser(User user) {
+
+    this.user = user;
+  }
+
+  public Long getUserId() {
+    return userId;
   }
 
   public void setUserId(Long userId) {
-
     this.userId = userId;
   }
+
 }
