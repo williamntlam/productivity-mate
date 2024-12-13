@@ -61,12 +61,19 @@ public class ReminderController {
   @PutMapping("/{id}")
   public ResponseEntity<Reminder> updateReminder(
       @PathVariable Long id, @RequestBody Reminder updatedReminder) {
-    Reminder existingReminder = reminderService.getReminderById(id);
-    if (existingReminder == null) {
-      return ResponseEntity.notFound().build();
-    }
-    Reminder savedReminder = reminderService.saveReminder(updatedReminder);
-    return ResponseEntity.ok(savedReminder);
+
+      // Fetch the existing reminder from the database
+      Reminder existingReminder = reminderService.getReminderById(id);
+      if (existingReminder == null) {
+          return ResponseEntity.notFound().build();
+      }
+
+      // Retain the user from the existing reminder
+      User user = existingReminder.getUser();
+      updatedReminder.setUser(user);
+
+      Reminder savedReminder = reminderService.saveReminder(updatedReminder);
+      return ResponseEntity.ok(savedReminder);
   }
 
   @DeleteMapping("/{id}")
