@@ -23,6 +23,7 @@ public class PomodoroSettingsController {
     return ResponseEntity.ok(settings);
   }
 
+  @PostMapping
   public ResponseEntity<PomodoroSettings> saveSettings(@RequestBody PomodoroSettings settings) {
 
     PomodoroSettings savedSettings = pomodoroSettingsService.saveSettings(settings);
