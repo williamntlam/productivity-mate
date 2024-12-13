@@ -4,6 +4,8 @@ import com.williamntlam.taskmanagementapp.model.PomodoroSettings;
 import com.williamntlam.taskmanagementapp.model.User;
 import com.williamntlam.taskmanagementapp.service.PomodoroSettingsService;
 import com.williamntlam.taskmanagementapp.service.UserService;
+
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,9 +55,13 @@ public class PomodoroSettingsController {
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<String> deleteSettings(@PathVariable Long id) {
-
-    pomodoroSettingsService.deleteSettings(id);
-    return ResponseEntity.ok("Pomodoro settings deleted successfully.");
+  public ResponseEntity<Void> deleteSettings(@PathVariable Long id) {
+      try {
+          pomodoroSettingsService.deleteSettings(id);
+          return ResponseEntity.noContent().build(); // 204 No Content on success
+      } catch (EmptyResultDataAccessException e) {
+          return ResponseEntity.notFound().build(); // 404 Not Found if the ID does not exist
+      }
   }
+
 }
