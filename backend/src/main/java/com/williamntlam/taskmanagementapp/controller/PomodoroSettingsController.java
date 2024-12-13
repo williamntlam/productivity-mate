@@ -21,10 +21,10 @@ public class PomodoroSettingsController {
     this.userService = userService;
   }
 
-  @GetMapping("/{userId}")
-  public ResponseEntity<PomodoroSettings> getSettings(@PathVariable Long userId) {
+  @GetMapping("/{id}")
+  public ResponseEntity<PomodoroSettings> getSettings(@PathVariable Long id) {
 
-    PomodoroSettings settings = pomodoroSettingsService.getSettingsByUserId(userId);
+    PomodoroSettings settings = pomodoroSettingsService.getSettingsById(id);
     return ResponseEntity.ok(settings);
   }
 

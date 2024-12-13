@@ -14,12 +14,11 @@ public class PomodoroSettingsService {
     this.pomodoroSettingsRepository = pomodoroSettingsRepository;
   }
 
-  public PomodoroSettings getSettingsByUserId(Long userId) {
+  public PomodoroSettings getSettingsById(Long id) {
 
     return pomodoroSettingsRepository
-        .findByUserId(userId)
-        .orElseThrow(
-            () -> new RuntimeException("No pomodoro settings found for User ID: " + userId));
+        .findById(id)
+        .orElseThrow(() -> new RuntimeException("No pomodoro settings found with id: " + id));
   }
 
   public PomodoroSettings saveSettings(PomodoroSettings settings) {
