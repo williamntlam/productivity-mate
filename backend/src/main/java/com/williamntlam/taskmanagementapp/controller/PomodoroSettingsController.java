@@ -2,6 +2,8 @@ package com.williamntlam.taskmanagementapp.controller;
 
 import com.williamntlam.taskmanagementapp.model.PomodoroSettings;
 import com.williamntlam.taskmanagementapp.service.PomodoroSettingsService;
+import com.williamntlam.taskmanagementapp.model.User;
+import com.williamntlam.taskmanagementapp.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,10 +12,12 @@ import org.springframework.web.bind.annotation.*;
 public class PomodoroSettingsController {
 
   private final PomodoroSettingsService pomodoroSettingsService;
+  private final UserService userService;
 
-  public PomodoroSettingsController(PomodoroSettingsService pomodoroSettingsService) {
+  public PomodoroSettingsController(PomodoroSettingsService pomodoroSettingsService, UserService userService) {
 
     this.pomodoroSettingsService = pomodoroSettingsService;
+    this.userService = userService;
   }
 
   @GetMapping("/{userId}")
@@ -25,10 +29,28 @@ public class PomodoroSettingsController {
 
   @PostMapping
   public ResponseEntity<PomodoroSettings> saveSettings(@RequestBody PomodoroSettings settings) {
+      // Validate the user association
+      User user = settings.getUser();
+      if (user == null || user.getId() == null) {
+          return ResponseEntity.badRequest().body(null); // User ID must be provided
+      }
 
-    PomodoroSettings savedSettings = pomodoroSettingsService.saveSettings(settings);
-    return ResponseEntity.ok(savedSettings);
+      // Verify the user exists in the database
+      User existingUser = userService.findById(user.getId());
+      if (existingUser == null) {
+          return ResponseEntity.badRequest().body(null); // User not found
+      }
+
+      // Set the existing user to the settings
+      settings.setUser(existingUser);
+
+      // Save the pomodoro settings
+      PomodoroSettings savedSettings = pomodoroSettingsService.saveSettings(settings);
+
+      // Return the saved settings
+      return ResponseEntity.ok(savedSettings);
   }
+
 
   @DeleteMapping("/{id}")
   public ResponseEntity<String> deleteSettings(@PathVariable Long id) {
