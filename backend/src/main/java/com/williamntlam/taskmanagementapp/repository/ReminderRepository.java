@@ -2,7 +2,6 @@ package com.williamntlam.taskmanagementapp.repository;
 
 import com.williamntlam.taskmanagementapp.model.Reminder;
 import com.williamntlam.taskmanagementapp.utils.Enums.ReminderStatus;
-
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

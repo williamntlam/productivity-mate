@@ -141,5 +141,4 @@ public class Reminder {
   public void setUserId(Long userId) {
     this.userId = userId;
   }
-
 }

@@ -1,12 +1,10 @@
 package com.williamntlam.taskmanagementapp.controller;
 
 import com.williamntlam.taskmanagementapp.model.Reminder;
-import com.williamntlam.taskmanagementapp.model.Task;
 import com.williamntlam.taskmanagementapp.model.User;
 import com.williamntlam.taskmanagementapp.service.ReminderService;
 import com.williamntlam.taskmanagementapp.service.UserService;
 import com.williamntlam.taskmanagementapp.utils.Enums.ReminderStatus;
-
 import java.util.Date;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -62,18 +60,18 @@ public class ReminderController {
   public ResponseEntity<Reminder> updateReminder(
       @PathVariable Long id, @RequestBody Reminder updatedReminder) {
 
-      // Fetch the existing reminder from the database
-      Reminder existingReminder = reminderService.getReminderById(id);
-      if (existingReminder == null) {
-          return ResponseEntity.notFound().build();
-      }
+    // Fetch the existing reminder from the database
+    Reminder existingReminder = reminderService.getReminderById(id);
+    if (existingReminder == null) {
+      return ResponseEntity.notFound().build();
+    }
 
-      // Retain the user from the existing reminder
-      User user = existingReminder.getUser();
-      updatedReminder.setUser(user);
+    // Retain the user from the existing reminder
+    User user = existingReminder.getUser();
+    updatedReminder.setUser(user);
 
-      Reminder savedReminder = reminderService.saveReminder(updatedReminder);
-      return ResponseEntity.ok(savedReminder);
+    Reminder savedReminder = reminderService.saveReminder(updatedReminder);
+    return ResponseEntity.ok(savedReminder);
   }
 
   @DeleteMapping("/{id}")
