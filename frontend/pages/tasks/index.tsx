@@ -1,10 +1,13 @@
 import Navbar from "@/components/Navbar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 type Task = {
   id: number;
   title: string;
-  body: string;
+  description: string;
   dueDate: string; // Use string for simplicity (e.g., "YYYY-MM-DD")
   completed: boolean;
 };
@@ -12,17 +15,52 @@ type Task = {
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
+  const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
 
+  useEffect(() => {
+    // Define an async function inside useEffect
+    const fetchTasks = async () => {
+      console.log(process.env.NEXT_PUBLIC_BACKEND_URL);
+      console.log(process.env.NEXT_PUBLIC_BACKEND_PORT);
+
+      try {
+        // Perform the asynchronous fetch call with headers
+        const response = await fetch(
+          `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/tasks`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const tasks = await response.json(); // Assuming the response is in JSON format
+        console.log("Tasks fetched:", tasks);
+        setTasks(tasks.content);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      }
+    };
+
+    // Call the async function
+    fetchTasks();
+  }, []);
+
   const addTask = () => {
-    if (title.trim() && body.trim() && dueDate.trim()) {
+    if (title.trim() && description.trim() && dueDate.trim()) {
       setTasks((prevTasks) => [
         ...prevTasks,
-        { id: Date.now(), title, body, dueDate, completed: false },
+        { id: Date.now(), title, description, dueDate, completed: false },
       ]);
       setTitle("");
-      setBody("");
+      setDescription("");
       setDueDate("");
     }
   };
@@ -63,13 +101,16 @@ export default function TasksPage() {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-2" htmlFor="body">
-              Task Body
+            <label
+              className="block text-sm font-medium mb-2"
+              htmlFor="description"
+            >
+              Task Description
             </label>
             <textarea
-              id="body"
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter task description"
               rows={4}
               className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -105,13 +146,7 @@ export default function TasksPage() {
                 className="flex flex-col bg-gray-700 p-4 rounded-md"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <h3
-                    className={`text-lg font-semibold ${
-                      task.completed ? "line-through text-gray-500" : ""
-                    }`}
-                  >
-                    {task.title}
-                  </h3>
+                  <h3 className="text-lg font-semibold">{task.title}</h3>
                   <button
                     onClick={() => deleteTask(task.id)}
                     className="text-red-500 hover:text-red-600 text-sm"
@@ -119,21 +154,15 @@ export default function TasksPage() {
                     Delete
                   </button>
                 </div>
-                <p
-                  className={`text-sm ${
-                    task.completed ? "line-through text-gray-500" : ""
-                  }`}
-                >
-                  {task.body}
-                </p>
+                <p className="text-sm text-gray-300">{task.description}</p>
                 <div className="mt-2 flex justify-between items-center">
                   <span className="text-sm text-gray-400">
-                    Due: {task.dueDate}
+                    Due: {new Date(task.dueDate).toLocaleDateString()}
                   </span>
                   <label className="flex items-center gap-2 text-sm">
                     <input
                       type="checkbox"
-                      checked={task.completed}
+                      checked={task.completed || false} // Default to false if `completed` is missing
                       onChange={() => toggleTaskCompletion(task.id)}
                       className="w-4 h-4"
                     />
