@@ -53,12 +53,32 @@ export default function TasksPage() {
     fetchTasks();
   }, []);
 
-  const addTask = () => {
+  const addTask = async () => {
     if (title.trim() && description.trim() && dueDate.trim()) {
+      const addedTask = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/tasks`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: title,
+            description: description,
+            completed: false,
+            dueDate: dueDate,
+          }),
+        }
+      );
+
+      // Here, I should display all the tasks again.
+      // Maybe there's a more efficient way...
+
       setTasks((prevTasks) => [
         ...prevTasks,
         { id: Date.now(), title, description, dueDate, completed: false },
       ]);
+
       setTitle("");
       setDescription("");
       setDueDate("");
