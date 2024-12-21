@@ -146,7 +146,14 @@ export default function TasksPage() {
                 className="flex flex-col bg-gray-700 p-4 rounded-md"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <h3 className="text-lg font-semibold">{task.title}</h3>
+                  <h3
+                    className={`text-lg font-semibold ${
+                      task.completed ? "line-through text-gray-500" : ""
+                    }`}
+                  >
+                    {task.title}
+                  </h3>
+
                   <button
                     onClick={() => deleteTask(task.id)}
                     className="text-red-500 hover:text-red-600 text-sm"
