@@ -17,15 +17,11 @@ export default function TasksPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   useEffect(() => {
-    // Define an async function inside useEffect
     const fetchTasks = async () => {
-      console.log(process.env.NEXT_PUBLIC_BACKEND_URL);
-      console.log(process.env.NEXT_PUBLIC_BACKEND_PORT);
-
       try {
-        // Perform the asynchronous fetch call with headers
         const response = await fetch(
           `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/tasks`,
           {
@@ -41,47 +37,105 @@ export default function TasksPage() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const tasks = await response.json(); // Assuming the response is in JSON format
-        console.log("Tasks fetched:", tasks);
+        const tasks = await response.json();
         setTasks(tasks.content);
       } catch (error) {
         console.error("Error fetching tasks:", error);
       }
     };
 
-    // Call the async function
     fetchTasks();
   }, []);
 
   const addTask = async () => {
     if (title.trim() && description.trim() && dueDate.trim()) {
-      const addedTask = await fetch(
-        `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/tasks`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            title: title,
-            description: description,
-            dueDate: dueDate,
-            status: "IN_PROGRESS",
-            priority: "HIGH",
-            userId: 1,
-          }),
+      try {
+        const response = await fetch(
+          `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/tasks`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              title,
+              description,
+              dueDate,
+              status: "IN_PROGRESS",
+              priority: "HIGH",
+              userId: 1,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      );
 
-      setTasks((prevTasks) => [
-        ...prevTasks,
-        { id: Date.now(), title, description, dueDate, completed: false },
-      ]);
+        const newTask = await response.json();
+        setTasks((prevTasks) => [...prevTasks, newTask]);
 
-      setTitle("");
-      setDescription("");
-      setDueDate("");
+        setTitle("");
+        setDescription("");
+        setDueDate("");
+      } catch (error) {
+        console.error("Error adding task:", error);
+      }
     }
+  };
+
+  const startEditingTask = (task: Task) => {
+    setEditingTask(task);
+    setTitle(task.title);
+    setDescription(task.description);
+    setDueDate(task.dueDate);
+  };
+
+  const saveTask = async () => {
+    if (editingTask && title.trim() && description.trim() && dueDate.trim()) {
+      try {
+        const response = await fetch(
+          `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/tasks/${editingTask.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              title,
+              description,
+              dueDate,
+              completed: editingTask.completed,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const updatedTask = await response.json();
+        setTasks((prevTasks) =>
+          prevTasks.map((task) =>
+            task.id === editingTask.id ? updatedTask : task
+          )
+        );
+
+        setEditingTask(null);
+        setTitle("");
+        setDescription("");
+        setDueDate("");
+      } catch (error) {
+        console.error("Error updating task:", error);
+      }
+    }
+  };
+
+  const cancelEditing = () => {
+    setEditingTask(null);
+    setTitle("");
+    setDescription("");
+    setDueDate("");
   };
 
   const toggleTaskCompletion = (id: number) => {
@@ -93,29 +147,36 @@ export default function TasksPage() {
   };
 
   const deleteTask = async (id: number) => {
-    const deletedTask = await fetch(
-      `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/tasks/${id}`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    try {
+      const response = await fetch(
+        `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/tasks/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
   };
 
   return (
     <div className="bg-gray-900 text-white min-h-screen flex flex-col">
-      {/* Navbar */}
       <Navbar />
 
-      {/* Main Content */}
       <main className="flex-1 flex max-w-full px-4 py-8 gap-8 h-screen">
-        {/* Left Side: Add Task */}
         <section className="flex flex-col bg-gray-800 p-6 rounded-md flex-1">
-          <h2 className="text-2xl font-bold mb-6">Add a New Task</h2>
+          <h2 className="text-2xl font-bold mb-6">
+            {editingTask ? "Edit Task" : "Add a New Task"}
+          </h2>
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2" htmlFor="title">
               Task Title
@@ -126,7 +187,7 @@ export default function TasksPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter task title"
-              className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600"
             />
           </div>
           <div className="mb-4">
@@ -142,7 +203,7 @@ export default function TasksPage() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Enter task description"
               rows={4}
-              className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600"
             />
           </div>
           <div className="mb-4">
@@ -154,18 +215,36 @@ export default function TasksPage() {
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600"
             />
           </div>
-          <button
-            onClick={addTask}
-            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md font-medium w-full mt-auto"
-          >
-            Add Task
-          </button>
+          <div className="flex gap-4">
+            {editingTask ? (
+              <>
+                <button
+                  onClick={saveTask}
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md font-medium"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={cancelEditing}
+                  className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-md font-medium"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={addTask}
+                className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md font-medium"
+              >
+                Add Task
+              </button>
+            )}
+          </div>
         </section>
 
-        {/* Right Side: Task List */}
         <section className="flex flex-col bg-gray-800 p-6 rounded-md flex-1">
           <h2 className="text-2xl font-bold mb-6">My Tasks</h2>
           <ul className="space-y-4 flex-1 overflow-y-auto">
@@ -173,6 +252,7 @@ export default function TasksPage() {
               <li
                 key={task.id}
                 className="flex flex-col bg-gray-700 p-4 rounded-md"
+                onClick={() => startEditingTask(task)}
               >
                 <div className="flex justify-between items-center mb-2">
                   <h3
@@ -182,9 +262,11 @@ export default function TasksPage() {
                   >
                     {task.title}
                   </h3>
-
                   <button
-                    onClick={() => deleteTask(task.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteTask(task.id);
+                    }}
                     className="text-red-500 hover:text-red-600 text-sm"
                   >
                     Delete
@@ -198,7 +280,7 @@ export default function TasksPage() {
                   <label className="flex items-center gap-2 text-sm">
                     <input
                       type="checkbox"
-                      checked={task.completed || false} // Default to false if `completed` is missing
+                      checked={task.completed || false}
                       onChange={() => toggleTaskCompletion(task.id)}
                       className="w-4 h-4"
                     />
@@ -211,7 +293,6 @@ export default function TasksPage() {
         </section>
       </main>
 
-      {/* Footer */}
       <footer className="bg-gray-800 text-center py-4">
         <p className="text-gray-400">
           &copy; {new Date().getFullYear()} ProductivityMate. All rights
