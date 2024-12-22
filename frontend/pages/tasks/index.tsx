@@ -10,8 +10,8 @@ type Task = {
   description: string;
   dueDate: string; // Use string for simplicity (e.g., "YYYY-MM-DD")
   completed: boolean;
-  priority: string; // LOW, MEDIUM, HIGH
-  status: string; // PENDING, IN_PROGRESS, COMPLETED
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  status: "PENDING" | "IN_PROGRESS" | "COMPLETED";
 };
 
 export default function TasksPage() {
@@ -19,8 +19,10 @@ export default function TasksPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [priority, setPriority] = useState("MEDIUM");
-  const [status, setStatus] = useState("PENDING");
+  const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
+  const [status, setStatus] = useState<"PENDING" | "IN_PROGRESS" | "COMPLETED">(
+    "PENDING"
+  );
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   useEffect(() => {
@@ -67,7 +69,7 @@ export default function TasksPage() {
               dueDate,
               priority,
               status,
-              userId: 1, // Example user ID, replace with actual value if dynamic
+              userId: 1, // Replace with actual user ID if dynamic
             }),
           }
         );
@@ -115,7 +117,7 @@ export default function TasksPage() {
               dueDate,
               priority,
               status,
-              userId: 1, // Example user ID
+              userId: 1, // Replace with actual user ID if dynamic
             }),
           }
         );
@@ -156,6 +158,38 @@ export default function TasksPage() {
     setStatus("PENDING");
   };
 
+  const toggleTaskCompletion = async (id: number) => {
+    const task = tasks.find((task) => task.id === id);
+    if (!task) return;
+
+    try {
+      const response = await fetch(
+        `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/tasks/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...task,
+            status: task.status === "COMPLETED" ? "IN_PROGRESS" : "COMPLETED",
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const updatedTask = await response.json();
+      setTasks((prevTasks) =>
+        prevTasks.map((task) => (task.id === id ? updatedTask : task))
+      );
+    } catch (error) {
+      console.error("Error toggling task completion:", error);
+    }
+  };
+
   const deleteTask = async (id: number) => {
     try {
       const response = await fetch(
@@ -187,7 +221,6 @@ export default function TasksPage() {
           <h2 className="text-2xl font-bold mb-6">
             {editingTask ? "Edit Task" : "Add a New Task"}
           </h2>
-          {/* Task Title */}
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2" htmlFor="title">
               Task Title
@@ -201,8 +234,6 @@ export default function TasksPage() {
               className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600"
             />
           </div>
-
-          {/* Task Description */}
           <div className="mb-4">
             <label
               className="block text-sm font-medium mb-2"
@@ -219,8 +250,18 @@ export default function TasksPage() {
               className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600"
             />
           </div>
-
-          {/* Task Priority */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2" htmlFor="dueDate">
+              Due Date
+            </label>
+            <input
+              id="dueDate"
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600"
+            />
+          </div>
           <div className="mb-4">
             <label
               className="block text-sm font-medium mb-2"
@@ -231,7 +272,7 @@ export default function TasksPage() {
             <select
               id="priority"
               value={priority}
-              onChange={(e) => setPriority(e.target.value)}
+              onChange={(e) => setPriority(e.target.value as Task["priority"])}
               className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600"
             >
               <option value="LOW">Low</option>
@@ -239,8 +280,6 @@ export default function TasksPage() {
               <option value="HIGH">High</option>
             </select>
           </div>
-
-          {/* Task Status */}
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2" htmlFor="status">
               Status
@@ -248,7 +287,7 @@ export default function TasksPage() {
             <select
               id="status"
               value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              onChange={(e) => setStatus(e.target.value as Task["status"])}
               className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600"
             >
               <option value="PENDING">Pending</option>
@@ -256,8 +295,6 @@ export default function TasksPage() {
               <option value="COMPLETED">Completed</option>
             </select>
           </div>
-
-          {/* Buttons */}
           <div className="flex gap-4">
             {editingTask ? (
               <>
@@ -297,7 +334,9 @@ export default function TasksPage() {
                 <div className="flex justify-between items-center mb-2">
                   <h3
                     className={`text-lg font-semibold ${
-                      task.completed ? "line-through text-gray-500" : ""
+                      task.status === "COMPLETED"
+                        ? "line-through text-gray-500"
+                        : ""
                     }`}
                   >
                     {task.title}
@@ -324,7 +363,7 @@ export default function TasksPage() {
                   <label className="flex items-center gap-2 text-sm">
                     <input
                       type="checkbox"
-                      checked={task.completed || false}
+                      checked={task.status === "COMPLETED"}
                       onChange={() => toggleTaskCompletion(task.id)}
                       className="w-4 h-4"
                     />
