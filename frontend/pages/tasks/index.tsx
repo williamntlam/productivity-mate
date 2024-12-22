@@ -92,7 +92,17 @@ export default function TasksPage() {
     );
   };
 
-  const deleteTask = (id: number) => {
+  const deleteTask = async (id: number) => {
+    const deletedTask = await fetch(
+      `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/tasks/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
     setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
   };
 
