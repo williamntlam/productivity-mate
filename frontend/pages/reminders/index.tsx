@@ -1,6 +1,8 @@
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import dotenv from "dotenv";
+dotenv.config();
 
 type Reminder = {
   id: number;
@@ -9,7 +11,7 @@ type Reminder = {
   reminderDate: string; // Use string for simplicity (e.g., "YYYY-MM-DD")
   sent: boolean; // Indicates whether the reminder has been "sent"
   status: "PENDING" | "COMPLETED" | "CANCELLED"; // Matches ReminderStatus enum
-  repeatFrequencyDays: number | null; // Optional: number of days for repeat
+  repeatFrequencyDays: number | null;
 };
 
 export default function RemindersPage() {
@@ -24,8 +26,63 @@ export default function RemindersPage() {
     null
   );
 
-  const addReminder = () => {
+  useEffect(() => {
+    const fetchReminders = async () => {
+      try {
+        const response = await fetch(
+          `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/reminders`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const reminders = await response.json();
+        setReminders(reminders);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      }
+    };
+
+    fetchReminders();
+  }, []);
+
+  const addReminder = async () => {
     if (title.trim() && description.trim() && reminderDate.trim()) {
+      const addedReminder = await fetch(
+        `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/reminders`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: 1,
+            title,
+            description,
+            reminderDate,
+            repeatFrequencyDays,
+            status: "PENDING",
+          }),
+        }
+      );
+
+      if (!addedReminder.ok) {
+        const errorMessage = await addedReminder.text(); // Read the response text for additional error details
+        throw new Error(
+          `HTTP error! Status: ${addedReminder.status} - ${
+            addedReminder.statusText || "Unknown error"
+          }. Message: ${errorMessage}`
+        );
+      }
+
       setReminders((prevReminders) => [
         ...prevReminders,
         {
