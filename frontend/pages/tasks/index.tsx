@@ -10,6 +10,8 @@ type Task = {
   description: string;
   dueDate: string; // Use string for simplicity (e.g., "YYYY-MM-DD")
   completed: boolean;
+  priority: string; // LOW, MEDIUM, HIGH
+  status: string; // PENDING, IN_PROGRESS, COMPLETED
 };
 
 export default function TasksPage() {
@@ -17,6 +19,8 @@ export default function TasksPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [priority, setPriority] = useState("MEDIUM");
+  const [status, setStatus] = useState("PENDING");
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   useEffect(() => {
@@ -61,9 +65,9 @@ export default function TasksPage() {
               title,
               description,
               dueDate,
-              status: "IN_PROGRESS",
-              priority: "HIGH",
-              userId: 1,
+              priority,
+              status,
+              userId: 1, // Example user ID, replace with actual value if dynamic
             }),
           }
         );
@@ -78,6 +82,8 @@ export default function TasksPage() {
         setTitle("");
         setDescription("");
         setDueDate("");
+        setPriority("MEDIUM");
+        setStatus("PENDING");
       } catch (error) {
         console.error("Error adding task:", error);
       }
@@ -89,6 +95,8 @@ export default function TasksPage() {
     setTitle(task.title);
     setDescription(task.description);
     setDueDate(task.dueDate);
+    setPriority(task.priority);
+    setStatus(task.status);
   };
 
   const saveTask = async () => {
@@ -105,13 +113,19 @@ export default function TasksPage() {
               title,
               description,
               dueDate,
-              completed: editingTask.completed,
+              priority,
+              status,
+              userId: 1, // Example user ID
             }),
           }
         );
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorMessage = await response.text();
+          console.error(
+            `HTTP error! status: ${response.status}, message: ${errorMessage}`
+          );
+          throw new Error(errorMessage);
         }
 
         const updatedTask = await response.json();
@@ -125,6 +139,8 @@ export default function TasksPage() {
         setTitle("");
         setDescription("");
         setDueDate("");
+        setPriority("MEDIUM");
+        setStatus("PENDING");
       } catch (error) {
         console.error("Error updating task:", error);
       }
@@ -136,14 +152,8 @@ export default function TasksPage() {
     setTitle("");
     setDescription("");
     setDueDate("");
-  };
-
-  const toggleTaskCompletion = (id: number) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
+    setPriority("MEDIUM");
+    setStatus("PENDING");
   };
 
   const deleteTask = async (id: number) => {
@@ -177,6 +187,7 @@ export default function TasksPage() {
           <h2 className="text-2xl font-bold mb-6">
             {editingTask ? "Edit Task" : "Add a New Task"}
           </h2>
+          {/* Task Title */}
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2" htmlFor="title">
               Task Title
@@ -190,6 +201,8 @@ export default function TasksPage() {
               className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600"
             />
           </div>
+
+          {/* Task Description */}
           <div className="mb-4">
             <label
               className="block text-sm font-medium mb-2"
@@ -206,18 +219,45 @@ export default function TasksPage() {
               className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600"
             />
           </div>
+
+          {/* Task Priority */}
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-2" htmlFor="dueDate">
-              Due Date
+            <label
+              className="block text-sm font-medium mb-2"
+              htmlFor="priority"
+            >
+              Priority
             </label>
-            <input
-              id="dueDate"
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
+            <select
+              id="priority"
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
               className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600"
-            />
+            >
+              <option value="LOW">Low</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HIGH">High</option>
+            </select>
           </div>
+
+          {/* Task Status */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2" htmlFor="status">
+              Status
+            </label>
+            <select
+              id="status"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600"
+            >
+              <option value="PENDING">Pending</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="COMPLETED">Completed</option>
+            </select>
+          </div>
+
+          {/* Buttons */}
           <div className="flex gap-4">
             {editingTask ? (
               <>
@@ -273,6 +313,10 @@ export default function TasksPage() {
                   </button>
                 </div>
                 <p className="text-sm text-gray-300">{task.description}</p>
+                <p className="text-sm text-gray-400">
+                  Priority: {task.priority}
+                </p>
+                <p className="text-sm text-gray-400">Status: {task.status}</p>
                 <div className="mt-2 flex justify-between items-center">
                   <span className="text-sm text-gray-400">
                     Due: {new Date(task.dueDate).toLocaleDateString()}
