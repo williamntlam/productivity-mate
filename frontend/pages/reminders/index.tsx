@@ -103,18 +103,35 @@ export default function RemindersPage() {
     }
   };
 
-  const deleteReminder = (id: number) => {
-    setReminders((prevReminders) => prevReminders.filter((r) => r.id !== id));
-  };
-
-  const markAsSent = (id: number) => {
-    setReminders((prevReminders) =>
-      prevReminders.map((reminder) =>
-        reminder.id === id
-          ? { ...reminder, sent: true, status: "COMPLETED" }
-          : reminder
-      )
+  const deleteReminder = async (id: number) => {
+    const deletedReminder = await fetch(
+      `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/reminders/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: 1,
+          title,
+          description,
+          reminderDate,
+          repeatFrequencyDays,
+          status: "PENDING",
+        }),
+      }
     );
+
+    if (!deletedReminder.ok) {
+      const errorMessage = await deletedReminder.text(); // Read the response text for additional error details
+      throw new Error(
+        `HTTP error! Status: ${deletedReminder.status} - ${
+          deletedReminder.statusText || "Unknown error"
+        }. Message: ${errorMessage}`
+      );
+    }
+
+    setReminders((prevReminders) => prevReminders.filter((r) => r.id !== id));
   };
 
   return (
