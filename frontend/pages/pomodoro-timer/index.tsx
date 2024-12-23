@@ -11,8 +11,11 @@ export default function PomodoroPage() {
   const [completedSessions, setCompletedSessions] = useState<string[]>([]); // List of completed sessions
   const [message, setMessage] = useState<string | null>(null); // Feedback message
 
-  // Format time as MM:SS
+  // Format time as MM:SS or show "Enter a time!"
   const formatTime = (time: number) => {
+    if (isNaN(time)) {
+      return "Enter a time!";
+    }
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
     return `${minutes.toString().padStart(2, "0")}:${seconds
