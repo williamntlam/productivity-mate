@@ -9,6 +9,7 @@ export default function PomodoroPage() {
   const [focusDuration, setFocusDuration] = useState(25); // Focus duration in minutes
   const [breakDuration, setBreakDuration] = useState(5); // Break duration in minutes
   const [completedSessions, setCompletedSessions] = useState<string[]>([]); // List of completed sessions
+  const [message, setMessage] = useState<string | null>(null); // Feedback message
 
   // Format time as MM:SS
   const formatTime = (time: number) => {
@@ -49,12 +50,45 @@ export default function PomodoroPage() {
     }
   }, [isRunning, timeLeft, isFocusMode, focusDuration, breakDuration]);
 
+  // Update Timer when Duration Changes
+  useEffect(() => {
+    if (!isRunning) {
+      setTimeLeft(isFocusMode ? focusDuration * 60 : breakDuration * 60);
+    }
+  }, [focusDuration, breakDuration, isFocusMode, isRunning]);
+
+  // Save Durations to Backend (Mock Implementation)
+  const saveSettings = async () => {
+    try {
+      // Simulate saving to backend
+      const response = await fetch("/api/settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          focusDuration,
+          breakDuration,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      setMessage("Settings saved successfully!");
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      setMessage("Failed to save settings. Please try again.");
+    } finally {
+      // Clear message after 3 seconds
+      setTimeout(() => setMessage(null), 3000);
+    }
+  };
+
   return (
     <div className="bg-gray-900 text-white min-h-screen flex flex-col h-screen">
-      {/* Navbar */}
       <Navbar />
-
-      {/* Main Content */}
       <main className="flex-1 flex max-w-full px-4 py-8 gap-8">
         {/* Timer Section */}
         <section className="flex flex-col bg-gray-800 p-6 rounded-md flex-1 h-full items-center justify-center">
@@ -81,6 +115,9 @@ export default function PomodoroPage() {
         {/* Settings and History Section */}
         <section className="flex flex-col bg-gray-800 p-6 rounded-md flex-1 h-full">
           <h2 className="text-2xl font-bold mb-6">Settings & History</h2>
+
+          {/* Feedback Message */}
+          {message && <div className="mb-4 text-yellow-400">{message}</div>}
 
           {/* Change Durations */}
           <div className="mb-6">
@@ -123,8 +160,18 @@ export default function PomodoroPage() {
             </div>
           </div>
 
+          {/* Save Button */}
+          <div className="flex gap-4">
+            <button
+              onClick={saveSettings}
+              className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-md font-medium"
+            >
+              Save Settings
+            </button>
+          </div>
+
           {/* Completed Sessions */}
-          <div>
+          <div className="mt-6">
             <h3 className="text-lg font-semibold mb-4">Completed Sessions</h3>
             <ul className="space-y-4 overflow-y-auto max-h-64">
               {completedSessions.map((session, index) => (
@@ -139,7 +186,6 @@ export default function PomodoroPage() {
           </div>
         </section>
       </main>
-
       <Footer />
     </div>
   );
