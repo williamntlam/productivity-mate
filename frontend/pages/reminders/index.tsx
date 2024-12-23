@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import dotenv from "dotenv";
 dotenv.config();
 
+const API_BASE_URL = `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/reminders`;
+
 type Reminder = {
   id: number;
   title: string;
@@ -25,20 +27,19 @@ export default function RemindersPage() {
   const [repeatFrequencyDays, setRepeatFrequencyDays] = useState<number | null>(
     null
   );
+  const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const fetchReminders = async () => {
       try {
-        const response = await fetch(
-          `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/reminders`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json",
-            },
-          }
-        );
+        const response = await fetch(`${API_BASE_URL}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        });
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -56,9 +57,13 @@ export default function RemindersPage() {
 
   const addReminder = async () => {
     if (title.trim() && description.trim() && reminderDate.trim()) {
-      const addedReminder = await fetch(
-        `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/reminders`,
-        {
+      if (repeatFrequencyDays !== null && repeatFrequencyDays < 0) {
+        setMessage("Repeat frequency must be a non-negative number.");
+        return;
+      }
+
+      try {
+        const addedReminder = await fetch(`${API_BASE_URL}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -71,79 +76,162 @@ export default function RemindersPage() {
             repeatFrequencyDays,
             status: "PENDING",
           }),
+        });
+
+        if (!addedReminder.ok) {
+          const errorMessage = await addedReminder.text();
+          throw new Error(
+            `HTTP error! Status: ${addedReminder.status} - ${
+              addedReminder.statusText || "Unknown error"
+            }. Message: ${errorMessage}`
+          );
         }
-      );
 
-      if (!addedReminder.ok) {
-        const errorMessage = await addedReminder.text(); // Read the response text for additional error details
-        throw new Error(
-          `HTTP error! Status: ${addedReminder.status} - ${
-            addedReminder.statusText || "Unknown error"
-          }. Message: ${errorMessage}`
-        );
+        setReminders((prevReminders) => [
+          ...prevReminders,
+          {
+            id: Date.now(),
+            title,
+            description,
+            reminderDate,
+            sent: false,
+            status,
+            repeatFrequencyDays,
+          },
+        ]);
+        setMessage("Reminder added successfully!");
+        setTitle("");
+        setDescription("");
+        setReminderDate("");
+        setStatus("PENDING");
+        setRepeatFrequencyDays(null);
+      } catch (error) {
+        console.error("Error adding reminder:", error);
+        setMessage("Failed to add reminder.");
       }
-
-      setReminders((prevReminders) => [
-        ...prevReminders,
-        {
-          id: Date.now(),
-          title,
-          description,
-          reminderDate,
-          sent: false,
-          status,
-          repeatFrequencyDays,
-        },
-      ]);
-      setTitle("");
-      setDescription("");
-      setReminderDate("");
-      setStatus("PENDING");
-      setRepeatFrequencyDays(null);
     }
   };
 
   const deleteReminder = async (id: number) => {
-    const deletedReminder = await fetch(
-      `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/reminders/${id}`,
-      {
+    try {
+      const deletedReminder = await fetch(`${API_BASE_URL}/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          userId: 1,
-          title,
-          description,
-          reminderDate,
-          repeatFrequencyDays,
-          status: "PENDING",
-        }),
+      });
+
+      if (!deletedReminder.ok) {
+        const errorMessage = await deletedReminder.text();
+        throw new Error(
+          `HTTP error! Status: ${deletedReminder.status} - ${
+            deletedReminder.statusText || "Unknown error"
+          }. Message: ${errorMessage}`
+        );
       }
-    );
 
-    if (!deletedReminder.ok) {
-      const errorMessage = await deletedReminder.text(); // Read the response text for additional error details
-      throw new Error(
-        `HTTP error! Status: ${deletedReminder.status} - ${
-          deletedReminder.statusText || "Unknown error"
-        }. Message: ${errorMessage}`
+      setReminders((prevReminders) =>
+        prevReminders.filter((reminder) => reminder.id !== id)
       );
+      setMessage("Reminder deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting reminder:", error);
+      setMessage("Failed to delete reminder.");
     }
+  };
 
-    setReminders((prevReminders) => prevReminders.filter((r) => r.id !== id));
+  const saveReminder = async () => {
+    if (
+      editingReminder &&
+      title.trim() &&
+      description.trim() &&
+      reminderDate.trim() &&
+      repeatFrequencyDays !== null
+    ) {
+      if (repeatFrequencyDays < 0) {
+        setMessage("Repeat frequency must be a non-negative number.");
+        return;
+      }
+
+      try {
+        const updatedReminder = await fetch(
+          `${API_BASE_URL}/${editingReminder.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              title,
+              description,
+              reminderDate,
+              repeatFrequencyDays,
+              status,
+              id: editingReminder.id,
+            }),
+          }
+        );
+
+        if (!updatedReminder.ok) {
+          const errorMessage = await updatedReminder.text();
+          throw new Error(
+            `HTTP error! Status: ${updatedReminder.status} - ${
+              updatedReminder.statusText || "Unknown error"
+            }. Message: ${errorMessage}`
+          );
+        }
+
+        setReminders((prevReminders) =>
+          prevReminders.map((reminder) =>
+            reminder.id === editingReminder.id
+              ? {
+                  ...reminder,
+                  title,
+                  description,
+                  reminderDate,
+                  repeatFrequencyDays,
+                  status,
+                }
+              : reminder
+          )
+        );
+
+        setMessage("Reminder updated successfully!");
+        cancelEditing();
+      } catch (error) {
+        console.error("Error updating reminder:", error);
+        setMessage("Failed to update reminder.");
+      }
+    }
+  };
+
+  const startEditingReminder = (reminder: Reminder) => {
+    setEditingReminder(reminder);
+    setTitle(reminder.title);
+    setDescription(reminder.description);
+    setReminderDate(reminder.reminderDate);
+    setStatus(reminder.status);
+    setRepeatFrequencyDays(reminder.repeatFrequencyDays);
+  };
+
+  const cancelEditing = () => {
+    setEditingReminder(null);
+    setTitle("");
+    setDescription("");
+    setReminderDate("");
+    setStatus("PENDING");
+    setRepeatFrequencyDays(null);
   };
 
   return (
     <div className="bg-gray-900 text-white min-h-screen flex flex-col h-screen">
-      {/* Navbar */}
       <Navbar />
-
-      {/* Main Content */}
       <main className="flex-1 flex max-w-full px-4 py-8 gap-8">
-        {/* Left Side: Add Reminder */}
         <section className="flex flex-col bg-gray-800 p-6 rounded-md flex-1 h-full">
-          <h2 className="text-2xl font-bold mb-6">Add a New Reminder</h2>
+          <h2 className="text-2xl font-bold mb-6">
+            {editingReminder ? "Edit Reminder" : "Add a New Reminder"}
+          </h2>
+          {message && <div className="mb-4 text-yellow-400">{message}</div>}
           <div className="mb-4">
             <label
               className="block text-sm font-medium mb-2"
@@ -226,15 +314,33 @@ export default function RemindersPage() {
               className="w-full px-4 py-2 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <button
-            onClick={addReminder}
-            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md font-medium w-full mt-auto"
-          >
-            Add Reminder
-          </button>
+          <div className="flex gap-4">
+            {editingReminder ? (
+              <>
+                <button
+                  onClick={saveReminder}
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md font-medium"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={cancelEditing}
+                  className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-md font-medium"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={addReminder}
+                className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md font-medium"
+              >
+                Add Task
+              </button>
+            )}
+          </div>
         </section>
 
-        {/* Right Side: Reminder List */}
         <section className="flex flex-col bg-gray-800 p-6 rounded-md flex-1 h-full">
           <h2 className="text-2xl font-bold mb-6">My Reminders</h2>
           <ul className="space-y-4 flex-1 overflow-y-auto">
@@ -242,6 +348,7 @@ export default function RemindersPage() {
               <li
                 key={reminder.id}
                 className="flex flex-col bg-gray-700 p-4 rounded-md"
+                onClick={() => startEditingReminder(reminder)}
               >
                 <div className="flex justify-between items-center mb-2">
                   <h3
@@ -252,7 +359,10 @@ export default function RemindersPage() {
                     {reminder.title}
                   </h3>
                   <button
-                    onClick={() => deleteReminder(reminder.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteReminder(reminder.id);
+                    }}
                     className="text-red-500 hover:text-red-600 text-sm"
                   >
                     Delete

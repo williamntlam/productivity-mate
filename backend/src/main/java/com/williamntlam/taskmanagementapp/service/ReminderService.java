@@ -46,6 +46,10 @@ public class ReminderService {
     return reminderRepository.save(reminder);
   }
 
+  public Reminder updateReminder(Reminder reminder) {
+    return reminderRepository.save(reminder);
+  }
+
   public void deleteReminder(Long id) {
 
     if (reminderRepository.existsById(id)) {

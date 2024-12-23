@@ -70,7 +70,7 @@ public class ReminderController {
     User user = existingReminder.getUser();
     updatedReminder.setUser(user);
 
-    Reminder savedReminder = reminderService.saveReminder(updatedReminder);
+    Reminder savedReminder = reminderService.updateReminder(updatedReminder);
     return ResponseEntity.ok(savedReminder);
   }
 
