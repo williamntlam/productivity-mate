@@ -259,16 +259,6 @@ export default function RemindersPage() {
                     Repeat Every: {reminder.repeatFrequencyDays} days
                   </p>
                 )}
-                <button
-                  onClick={() => markAsSent(reminder.id)}
-                  className={`mt-2 text-sm px-2 py-1 rounded-md ${
-                    reminder.sent
-                      ? "bg-green-500 text-gray-900"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
-                  }`}
-                >
-                  {reminder.sent ? "Sent" : "Mark as Sent"}
-                </button>
               </li>
             ))}
           </ul>
