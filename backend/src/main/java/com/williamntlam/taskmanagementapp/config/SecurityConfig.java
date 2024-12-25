@@ -18,14 +18,14 @@ public class SecurityConfig {
                     "/public/**", "/oauth2/**")) // Exclude specific endpoints if needed
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/oauth2/**")
+                auth.requestMatchers("/oauth2/**", "/api/users/info")
                     .permitAll() // Public endpoints
                     .anyRequest()
                     .authenticated() // Protect all other endpoints
             )
         .oauth2Login(
             oauth2 ->
-                oauth2.defaultSuccessUrl("/callback", true) // Redirect to /callback after login
+                oauth2.defaultSuccessUrl("/api/users/info", true) // Redirect to /callback after login
             );
 
     return http.build();
