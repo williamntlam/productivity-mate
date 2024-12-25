@@ -22,10 +22,10 @@ export default function RemindersPage() {
   const [description, setDescription] = useState("");
   const [reminderDate, setReminderDate] = useState("");
   const [status, setStatus] = useState<"PENDING" | "COMPLETED" | "CANCELLED">(
-    "PENDING"
+    "PENDING",
   );
   const [repeatFrequencyDays, setRepeatFrequencyDays] = useState<number | null>(
-    null
+    null,
   );
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
   const [message, setMessage] = useState("");
@@ -83,7 +83,7 @@ export default function RemindersPage() {
           throw new Error(
             `HTTP error! Status: ${addedReminder.status} - ${
               addedReminder.statusText || "Unknown error"
-            }. Message: ${errorMessage}`
+            }. Message: ${errorMessage}`,
           );
         }
 
@@ -126,12 +126,12 @@ export default function RemindersPage() {
         throw new Error(
           `HTTP error! Status: ${deletedReminder.status} - ${
             deletedReminder.statusText || "Unknown error"
-          }. Message: ${errorMessage}`
+          }. Message: ${errorMessage}`,
         );
       }
 
       setReminders((prevReminders) =>
-        prevReminders.filter((reminder) => reminder.id !== id)
+        prevReminders.filter((reminder) => reminder.id !== id),
       );
       setMessage("Reminder deleted successfully!");
     } catch (error) {
@@ -169,7 +169,7 @@ export default function RemindersPage() {
               status,
               id: editingReminder.id,
             }),
-          }
+          },
         );
 
         if (!updatedReminder.ok) {
@@ -177,7 +177,7 @@ export default function RemindersPage() {
           throw new Error(
             `HTTP error! Status: ${updatedReminder.status} - ${
               updatedReminder.statusText || "Unknown error"
-            }. Message: ${errorMessage}`
+            }. Message: ${errorMessage}`,
           );
         }
 
@@ -192,8 +192,8 @@ export default function RemindersPage() {
                   repeatFrequencyDays,
                   status,
                 }
-              : reminder
-          )
+              : reminder,
+          ),
         );
 
         setMessage("Reminder updated successfully!");
@@ -307,7 +307,7 @@ export default function RemindersPage() {
               value={repeatFrequencyDays || ""}
               onChange={(e) =>
                 setRepeatFrequencyDays(
-                  e.target.value ? parseInt(e.target.value, 10) : null
+                  e.target.value ? parseInt(e.target.value, 10) : null,
                 )
               }
               placeholder="Enter repeat frequency in days"

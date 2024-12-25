@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 public interface PomodoroSettingsRepository extends JpaRepository<PomodoroSettings, Long> {
 
   Optional<PomodoroSettings> findByUserId(Long UserId);
-  
+
   @Transactional
   @Modifying
   @Query("DELETE FROM PomodoroSettings ps WHERE ps.id = :id")

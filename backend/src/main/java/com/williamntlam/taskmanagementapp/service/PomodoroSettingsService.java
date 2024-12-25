@@ -27,7 +27,6 @@ public class PomodoroSettingsService {
     return pomodoroSettingsRepository.save(settings);
   }
 
-
   public void deleteSettings(Long id) {
     try {
       pomodoroSettingsRepository.deleteByIdCustom(id);
