@@ -2,71 +2,76 @@ package com.williamntlam.taskmanagementapp.controller;
 
 import com.williamntlam.taskmanagementapp.model.User;
 import com.williamntlam.taskmanagementapp.service.UserService;
-import com.williamntlam.taskmanagementapp.utils.JwtUtils;
-import java.util.HashMap;
-import java.util.Map;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
-  private final UserService userService;
-  private final JwtUtils jwtUtils;
+    private final UserService userService;
 
-  public UserController(UserService userService, JwtUtils jwtUtils) {
-
-    this.userService = userService;
-    this.jwtUtils = jwtUtils;
-  }
-
-  @PostMapping("/register")
-  public ResponseEntity<Map<String, String>> registerUser(@RequestBody User user) {
-    // Check if email is already in use
-    if (userService.emailExists(user.getEmail())) {
-      Map<String, String> response = new HashMap<>();
-      response.put("status", "error");
-      response.put("message", "Email is already in use");
-      return ResponseEntity.status(HttpStatus.CONFLICT).body(response); // HTTP 409 Conflict
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
-    // Register the user
-    userService.registerUser(user);
-    String token = jwtUtils.generateToken(user.getEmail());
+    /**
+     * Endpoint to retrieve authenticated user info after OAuth login.
+     *
+     * @param oidcUser         Authenticated user's OpenID Connect details.
+     * @param authorizedClient OAuth2 authorized client with access and refresh tokens.
+     * @return A response containing user details and OAuth tokens.
+     */
+    @GetMapping("/info")
+    public Map<String, Object> getUserInfo(
+            @AuthenticationPrincipal OidcUser oidcUser,
+            @RegisteredOAuth2AuthorizedClient("google") OAuth2AuthorizedClient authorizedClient) {
 
-    // Response
-    Map<String, String> response = new HashMap<>();
-    response.put("status", "success");
-    response.put("message", "User registered successfully");
-    response.put("token", token);
-    return ResponseEntity.ok(response);
-  }
+        // Extract user details from OIDC
+        String email = oidcUser.getEmail();
+        String name = oidcUser.getFullName();
+        String picture = oidcUser.getPicture();
 
-  @PostMapping("/login")
-  public ResponseEntity<Map<String, String>> loginUser(@RequestBody User user) {
+        // Check if the user exists in the database; if not, register them
+        if (!userService.emailExists(email)) {
+            User newUser = new User();
+            newUser.setEmail(email);
+            newUser.setName(name);
+            userService.registerUser(newUser); // Save user to database
+        }
 
-    boolean isAuthenticated = userService.loginUser(user.getEmail(), user.getPassword());
+        // Create a response with user details and OAuth tokens
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("email", email);
+        response.put("name", name);
+        response.put("picture", picture);
+        response.put("accessToken", authorizedClient.getAccessToken().getTokenValue());
+        response.put("refreshToken", authorizedClient.getRefreshToken() != null
+                ? authorizedClient.getRefreshToken().getTokenValue()
+                : null);
 
-    if (isAuthenticated) {
-
-      String token = jwtUtils.generateToken(user.getEmail());
-      Map<String, String> response = new HashMap<>();
-      response.put("status", "success");
-      response.put("message", "Login successful");
-      response.put("token", token);
-
-      return ResponseEntity.ok(response); // Returns as JSON
+        return response;
     }
 
-    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-        .body(
-            Map.of(
-                "status", "error",
-                "message", "Invalid credentials."));
-  }
+    /**
+     * Logout endpoint to clear the user's session and redirect to a logout page.
+     *
+     * @param response The HTTP response for redirection.
+     */
+    @GetMapping("/logout")
+    public void logout(HttpServletResponse response) throws IOException {
+        // Clear user session (if using session-based authentication)
+        response.sendRedirect("/logout-success"); // Redirect to a logout success page
+    }
 }
