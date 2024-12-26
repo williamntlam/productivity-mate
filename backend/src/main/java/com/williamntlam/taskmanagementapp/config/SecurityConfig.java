@@ -5,29 +5,31 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @Configuration
 public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
-        // Enable CSRF protection by default
-        .csrf(
-            csrf ->
-                csrf.ignoringRequestMatchers(
-                    "/public/**", "/oauth2/**")) // Exclude specific endpoints if needed
-        .authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers("/oauth2/**", "/api/users/info")
-                    .permitAll() // Public endpoints
-                    .anyRequest()
-                    .authenticated() // Protect all other endpoints
-            )
-        .oauth2Login(
-            oauth2 ->
-                oauth2.defaultSuccessUrl("/api/oauth2/callback/google", true) // Redirect to /callback after login
-            );
+        .csrf(csrf -> csrf.ignoringRequestMatchers("/public/**", "/oauth2/**"))
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/oauth2/**", "/api/users/info")
+            .permitAll()
+            .anyRequest()
+            .authenticated()
+        )
+        .oauth2Login(oauth2 -> oauth2
+            .successHandler((request, response, authentication) -> {
+              // Handle success without redirecting
+              response.setStatus(HttpServletResponse.SC_OK);
+              response.getWriter().write("{\"message\": \"Login successful\"}");
+              response.getWriter().flush();
+            })
+        );
 
     return http.build();
   }
 }
+
