@@ -36,15 +36,22 @@ const GoogleLogin = () => {
     }
 
     const queryParams = new URLSearchParams({
-      client_id: GOOGLE_CLIENT_ID,
-      redirect_uri: GOOGLE_REDIRECT_URI,
+      client_id: GOOGLE_CLIENT_ID || "",
+      redirect_uri: GOOGLE_REDIRECT_URI || "",
       response_type: "code",
-      scope: GOOGLE_SCOPE,
+      scope: GOOGLE_SCOPE?.replace(/,/g, " ") || "", // Replace commas with spaces
       access_type: "offline",
       prompt: "consent",
     });
 
-    window.location.href = `${GOOGLE_AUTHORIZATION_URI}?${queryParams.toString()}`;
+    console.log(`${GOOGLE_AUTHORIZATION_URI}?${queryParams.toString()}`);
+
+    // Redirect the user to the authorization URL
+    if (GOOGLE_AUTHORIZATION_URI) {
+      window.location.href = `${GOOGLE_AUTHORIZATION_URI}?${queryParams.toString()}`;
+    } else {
+      console.error("GOOGLE_AUTHORIZATION_URI is not defined");
+    }
   };
 
   return (
