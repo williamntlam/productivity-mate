@@ -26,19 +26,21 @@ const GoogleCallback = () => {
           }
         );
 
+        if (!response.ok) {
+          throw new Error("Failed to exchange authorization code.");
+        }
+
         const data = await response.json();
 
-        if (response.ok) {
-          console.log("Access Token:", data.access_token);
-          // Redirect the user or handle the access token
-          router.push("/tasks");
-        } else {
-          throw new Error(
-            data.error || "Failed to exchange authorization code."
-          );
-        }
-      } catch (error: any) {
-        console.error("Error exchanging code:", error.message);
+        console.log("Access Token:", data.accessToken);
+        console.log("Refresh Token:", data.refreshToken);
+        console.log("User Email:", data.email);
+        console.log("User Name:", data.name);
+
+        // Handle tokens, save them, or redirect
+        router.push("/tasks");
+      } catch (error) {
+        console.error("Error exchanging code:", error);
         setErrorMessage(
           "An error occurred during authentication. Please try again."
         );
