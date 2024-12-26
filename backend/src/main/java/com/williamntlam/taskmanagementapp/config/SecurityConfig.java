@@ -25,7 +25,7 @@ public class SecurityConfig {
             )
         .oauth2Login(
             oauth2 ->
-                oauth2.defaultSuccessUrl("/api/users/info", true) // Redirect to /callback after login
+                oauth2.defaultSuccessUrl("/api/oauth2/callback/google", true) // Redirect to /callback after login
             );
 
     return http.build();

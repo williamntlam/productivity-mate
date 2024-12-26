@@ -19,7 +19,7 @@ public class OAuth2Controller {
    * @param oidcUser the authenticated user details
    * @param response the servlet response for redirection
    */
-  @GetMapping("/oauth2/callback/google")
+  @GetMapping("/api/oauth2/callback/google")
   public void handleOAuth2Callback(
       @RegisteredOAuth2AuthorizedClient("google") OAuth2AuthorizedClient authorizedClient,
       @AuthenticationPrincipal OidcUser oidcUser,
