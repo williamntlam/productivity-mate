@@ -1,5 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import dotenv from "dotenv";
+dotenv.config();
 
 const GoogleCallback = () => {
   const router = useRouter();
@@ -17,13 +19,16 @@ const GoogleCallback = () => {
       }
 
       try {
-        const response = await fetch("/api/oauth2/google/token", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ code }),
-        });
+        const response = await fetch(
+          `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/oauth2/callback/google`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ code }),
+          }
+        );
 
         const data = await response.json();
 
