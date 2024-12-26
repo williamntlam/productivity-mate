@@ -20,13 +20,9 @@ const GoogleCallback = () => {
 
       try {
         const response = await fetch(
-          `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/oauth2/callback/google`,
+          `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/oauth2/callback/google?code=${code}`,
           {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ code }),
+            method: "GET",
           }
         );
 
@@ -51,8 +47,10 @@ const GoogleCallback = () => {
       }
     };
 
-    handleOAuthCallback();
-  }, [router.query]);
+    if (router.isReady) {
+      handleOAuthCallback();
+    }
+  }, [router.isReady, router.query]);
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-900">
