@@ -30,7 +30,7 @@ const GoogleCallback = () => {
         if (response.ok) {
           console.log("Access Token:", data.access_token);
           // Redirect the user or handle the access token
-          router.push("/dashboard"); // Replace with your desired route
+          router.push("/tasks");
         } else {
           throw new Error(
             data.error || "Failed to exchange authorization code."
