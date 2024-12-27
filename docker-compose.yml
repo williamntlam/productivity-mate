@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: ["npx", "next", "dev"]
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/app
+      - ~/.m2:/root/.m2
+    command: ["./gradlew", "bootRun"]
