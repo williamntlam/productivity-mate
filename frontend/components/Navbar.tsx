@@ -68,16 +68,15 @@ export default function Navbar() {
         {isLoggedIn ? (
           <div className="flex items-center space-x-4">
             {/* Profile picture */}
-            <button
-              onClick={() => alert("Profile clicked!")}
-              className="flex items-center justify-center w-12 h-12 bg-gray-700 rounded-full hover:bg-gray-600"
-            >
-              <img
-                src={userInfo?.avatar || "https://via.placeholder.com/40"} // Avatar from localStorage
-                alt="Profile"
-                className="w-full h-full rounded-full"
-              />
-            </button>
+            <Link href="/profile">
+              <button className="flex items-center justify-center w-12 h-12 bg-gray-700 rounded-full hover:bg-gray-600">
+                <img
+                  src={userInfo?.avatar || "https://via.placeholder.com/40"} // Avatar from localStorage
+                  alt="Profile"
+                  className="w-full h-full rounded-full"
+                />
+              </button>
+            </Link>
 
             {/* Logout button */}
             <button
