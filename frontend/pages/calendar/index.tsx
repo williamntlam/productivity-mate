@@ -12,10 +12,18 @@ type GoogleCalendar = {
   summary: string;
 };
 
+type CalendarEvent = {
+  title: string;
+  start: string;
+  end: string;
+  allDay: boolean;
+  description?: string;
+};
+
 export default function CalendarPage() {
   const [allCalendars, setAllCalendars] = useState<GoogleCalendar[]>([]); // List of all calendars
   const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]); // Selected calendar IDs
-  const [calendarEvents, setCalendarEvents] = useState<any[]>([]); // Events from selected calendars
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]); // Events from selected calendars
   const [error, setError] = useState<string | null>(null);
 
   // Fetch all calendars
@@ -60,7 +68,7 @@ export default function CalendarPage() {
           throw new Error("User is not authenticated. Access token missing.");
         }
 
-        const allEvents: any[] = [];
+        const allEvents: CalendarEvent[] = [];
 
         for (const calendarId of selectedCalendars) {
           const response = await fetch(
@@ -87,6 +95,7 @@ export default function CalendarPage() {
             start: event.start.dateTime || event.start.date, // ISO string
             end: event.end.dateTime || event.end.date, // ISO string
             allDay: !event.start.dateTime, // All-day if no time is specified
+            description: event.description || "",
           }));
 
           allEvents.push(...transformedEvents);
@@ -112,6 +121,70 @@ export default function CalendarPage() {
           ? prevSelected.filter((id) => id !== calendarId) // Deselect calendar
           : [...prevSelected, calendarId] // Select calendar
     );
+  };
+
+  const handleDateClick = async (info: any) => {
+    if (selectedCalendars.length === 0) {
+      alert("Please select at least one calendar to add events.");
+      return;
+    }
+
+    const eventTitle = prompt("Enter event title:");
+    if (!eventTitle) return;
+
+    const eventDescription = prompt("Enter event description (optional):");
+
+    const startTime = prompt(
+      "Enter start time (HH:MM, 24-hour format):",
+      "00:00"
+    );
+    const endTime = prompt("Enter end time (HH:MM, 24-hour format):", "23:59");
+
+    const startDateTime = `${info.dateStr}T${startTime || "00:00"}`;
+    const endDateTime = `${info.dateStr}T${endTime || "23:59"}`;
+
+    const newEvent: CalendarEvent = {
+      title: eventTitle,
+      start: startDateTime,
+      end: endDateTime,
+      allDay: false,
+      description: eventDescription || "",
+    };
+
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        throw new Error("User is not authenticated. Access token missing.");
+      }
+
+      for (const calendarId of selectedCalendars) {
+        const response = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              summary: eventTitle,
+              description: eventDescription,
+              start: { dateTime: startDateTime },
+              end: { dateTime: endDateTime },
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to add event to calendar: ${calendarId}`);
+        }
+      }
+
+      // Add the event locally for immediate feedback
+      setCalendarEvents((prevEvents) => [...prevEvents, newEvent]);
+    } catch (err: any) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -162,6 +235,7 @@ export default function CalendarPage() {
             events={calendarEvents} // Use events from state
             editable={true} // Enable drag and drop
             selectable={true} // Enable date selection
+            dateClick={handleDateClick} // Add this line
           />
         </div>
       </main>
