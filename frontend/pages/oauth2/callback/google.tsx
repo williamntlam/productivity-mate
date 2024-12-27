@@ -1,9 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import dotenv from "dotenv";
-dotenv.config();
 
-const GoogleCallback = () => {
+const GoogleOAuthCallback = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -19,15 +17,23 @@ const GoogleCallback = () => {
       }
 
       try {
+        // Make the POST request to your backend
         const response = await fetch(
-          `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/oauth2/callback/google?code=${code}`,
+          `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/oauth2/callback/google`,
           {
-            method: "GET",
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ code }), // Send code in the request body
           }
         );
 
         if (!response.ok) {
-          throw new Error("Failed to exchange authorization code.");
+          const errorResponse = await response.json();
+          throw new Error(
+            errorResponse.error || "Failed to exchange authorization code."
+          );
         }
 
         const data = await response.json();
@@ -37,10 +43,10 @@ const GoogleCallback = () => {
         console.log("User Email:", data.email);
         console.log("User Name:", data.name);
 
-        // Handle tokens, save them, or redirect
+        // Redirect the user or save tokens as needed
         router.push("/tasks");
-      } catch (error) {
-        console.error("Error exchanging code:", error);
+      } catch (error: any) {
+        console.error("Error exchanging code:", error.message);
         setErrorMessage(
           "An error occurred during authentication. Please try again."
         );
@@ -49,29 +55,26 @@ const GoogleCallback = () => {
       }
     };
 
+    // Ensure the router is ready and the query is available
     if (router.isReady) {
       handleOAuthCallback();
     }
   }, [router.isReady, router.query]);
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-900">
+    <div className="flex items-center justify-center h-screen bg-gray-100">
       {isLoading ? (
         <div className="text-lg font-semibold text-gray-700">
           Processing Google OAuth callback...
         </div>
       ) : errorMessage ? (
-        <div className="text-white text-center">
-          <p className="text-3xl font-semibold">Error</p>
+        <div className="text-red-500 text-center">
+          <p className="text-lg font-semibold">Error</p>
           <p>{errorMessage}</p>
         </div>
-      ) : (
-        <div className="text-3xl font-semibold text-gray-700">
-          Successfully authenticated! Redirecting...
-        </div>
-      )}
+      ) : null}
     </div>
   );
 };
 
-export default GoogleCallback;
+export default GoogleOAuthCallback;
