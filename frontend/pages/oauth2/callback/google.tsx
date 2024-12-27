@@ -38,10 +38,12 @@ const GoogleOAuthCallback = () => {
 
         const data = await response.json();
 
-        console.log("Access Token:", data.accessToken);
-        console.log("Refresh Token:", data.refreshToken);
-        console.log("User Email:", data.email);
-        console.log("User Name:", data.name);
+        localStorage.setItem("name", data.name);
+        localStorage.setItem("email", data.email);
+        localStorage.setItem("firstName", data.given_name);
+        localStorage.setItem("lastName", data.family_name);
+        localStorage.setItem("avatar", data.picture);
+        localStorage.setItem("accessToken", data.accessToken);
 
         // Redirect the user or save tokens as needed
         router.push("/tasks");
