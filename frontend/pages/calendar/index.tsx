@@ -1,48 +1,34 @@
-import { Calendar, dateFnsLocalizer } from "react-big-calendar";
-import "react-big-calendar/lib/css/react-big-calendar.css";
-import { format, parse, startOfWeek, getDay } from "date-fns";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { useState, useEffect } from "react";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid"; // Month View
+import timeGridPlugin from "@fullcalendar/timegrid"; // Week and Day Views
+import interactionPlugin from "@fullcalendar/interaction"; // Drag and Drop
 
-const locales = {
-  "en-US": require("date-fns/locale/en-US"),
-};
-
-const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek,
-  getDay,
-  locales,
-});
-
-// Define event type
-type CalendarEvent = {
-  title: string;
-  start: Date;
-  end: Date;
-  allDay?: boolean;
+// Define calendar type
+type GoogleCalendar = {
+  id: string;
+  summary: string;
 };
 
 export default function CalendarPage() {
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]); // Initially empty
+  const [allCalendars, setAllCalendars] = useState<GoogleCalendar[]>([]); // List of all calendars
+  const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]); // Selected calendar IDs
+  const [calendarEvents, setCalendarEvents] = useState<any[]>([]); // Events from selected calendars
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch all calendars
   useEffect(() => {
-    const fetchGoogleCalendarEvents = async () => {
+    const fetchGoogleCalendars = async () => {
       try {
-        // Fetch the access token from localStorage
         const accessToken = localStorage.getItem("accessToken");
-        console.log(accessToken);
-
         if (!accessToken) {
           throw new Error("User is not authenticated. Access token missing.");
         }
 
-        // Fetch events from the Google Calendar API
         const response = await fetch(
-          "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+          "https://www.googleapis.com/calendar/v3/users/me/calendarList",
           {
             method: "GET",
             headers: {
@@ -52,29 +38,81 @@ export default function CalendarPage() {
         );
 
         if (!response.ok) {
-          throw new Error("Failed to fetch Google Calendar events");
+          throw new Error("Failed to fetch Google Calendars");
         }
 
         const data = await response.json();
-
-        // Transform Google Calendar API events to CalendarEvent format
-        const transformedEvents: CalendarEvent[] = data.items.map(
-          (event: any) => ({
-            title: event.summary || "No Title",
-            start: new Date(event.start.dateTime || event.start.date), // Use dateTime if available, fallback to date
-            end: new Date(event.end.dateTime || event.end.date), // Use dateTime if available, fallback to date
-            allDay: !event.start.dateTime, // If dateTime is missing, it's an all-day event
-          })
-        );
-
-        setCalendarEvents(transformedEvents); // Update state with events
+        setAllCalendars(data.items); // Set all calendars
       } catch (err: any) {
         setError(err.message);
       }
     };
 
-    fetchGoogleCalendarEvents();
+    fetchGoogleCalendars();
   }, []);
+
+  // Fetch events from selected calendars
+  useEffect(() => {
+    const fetchEventsForSelectedCalendars = async () => {
+      try {
+        const accessToken = localStorage.getItem("accessToken");
+        if (!accessToken) {
+          throw new Error("User is not authenticated. Access token missing.");
+        }
+
+        const allEvents: any[] = [];
+
+        for (const calendarId of selectedCalendars) {
+          const response = await fetch(
+            `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(
+              `Failed to fetch events for calendar: ${calendarId}`
+            );
+          }
+
+          const data = await response.json();
+
+          // Transform events into FullCalendar's format
+          const transformedEvents = data.items.map((event: any) => ({
+            title: event.summary || "No Title",
+            start: event.start.dateTime || event.start.date, // ISO string
+            end: event.end.dateTime || event.end.date, // ISO string
+            allDay: !event.start.dateTime, // All-day if no time is specified
+          }));
+
+          allEvents.push(...transformedEvents);
+        }
+
+        setCalendarEvents(allEvents); // Update events
+      } catch (err: any) {
+        setError(err.message);
+      }
+    };
+
+    if (selectedCalendars.length > 0) {
+      fetchEventsForSelectedCalendars();
+    } else {
+      setCalendarEvents([]); // Clear events if no calendars are selected
+    }
+  }, [selectedCalendars]);
+
+  const handleCalendarSelection = (calendarId: string) => {
+    setSelectedCalendars(
+      (prevSelected) =>
+        prevSelected.includes(calendarId)
+          ? prevSelected.filter((id) => id !== calendarId) // Deselect calendar
+          : [...prevSelected, calendarId] // Select calendar
+    );
+  };
 
   return (
     <div className="bg-gray-900 text-white min-h-screen flex flex-col">
@@ -91,13 +129,38 @@ export default function CalendarPage() {
           </p>
         )}
 
+        {/* Calendar List */}
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold mb-2">Select Calendars</h2>
+          <ul className="space-y-2">
+            {allCalendars.map((calendar) => (
+              <li key={calendar.id}>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={selectedCalendars.includes(calendar.id)}
+                    onChange={() => handleCalendarSelection(calendar.id)}
+                  />
+                  <span>{calendar.summary}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Calendar Display */}
         <div className="flex-1 bg-gray-800 rounded-md overflow-hidden">
-          <Calendar
-            localizer={localizer}
+          <FullCalendar
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            headerToolbar={{
+              left: "prev,next today",
+              center: "title",
+              right: "dayGridMonth,timeGridWeek,timeGridDay",
+            }}
             events={calendarEvents} // Use events from state
-            startAccessor="start"
-            endAccessor="end"
-            className="react-calendar"
+            editable={true} // Enable drag and drop
+            selectable={true} // Enable date selection
           />
         </div>
       </main>
