@@ -140,8 +140,11 @@ export default function CalendarPage() {
     );
     const endTime = prompt("Enter end time (HH:MM, 24-hour format):", "23:59");
 
-    const startDateTime = `${info.dateStr}T${startTime || "00:00"}`;
-    const endDateTime = `${info.dateStr}T${endTime || "23:59"}`;
+    const startDateTime = `${info.dateStr}T${startTime || "00:00"}:00-05:00`; // Toronto time offset
+    const endDateTime = `${info.dateStr}T${endTime || "23:59"}:00-05:00`;
+
+    console.log(startDateTime);
+    console.log(endDateTime);
 
     const newEvent: CalendarEvent = {
       title: eventTitle,
@@ -169,21 +172,50 @@ export default function CalendarPage() {
             body: JSON.stringify({
               summary: eventTitle,
               description: eventDescription,
-              start: { dateTime: startDateTime },
-              end: { dateTime: endDateTime },
+              start: {
+                dateTime: startDateTime,
+                timeZone: "America/Toronto", // Specify the time zone explicitly
+              },
+              end: {
+                dateTime: endDateTime,
+                timeZone: "America/Toronto", // Specify the time zone explicitly
+              },
             }),
           }
         );
 
         if (!response.ok) {
-          throw new Error(`Failed to add event to calendar: ${calendarId}`);
+          // Parse the error response for details
+          const errorDetail = await response.json();
+          console.error("Error response:", errorDetail);
+
+          // Construct a detailed error message
+          const detailedErrorMessage = `
+            Failed to add event to calendar: ${calendarId}.
+            Status: ${response.status} (${response.statusText})
+            API Message: ${
+              errorDetail.error?.message || "No additional details provided."
+            }
+            Suggested Resolution: ${
+              response.status === 401
+                ? "Check authentication and ensure the token is valid."
+                : response.status === 403
+                ? "Ensure the user has write access to this calendar."
+                : "Review the error message and API documentation."
+            }
+          `;
+
+          throw new Error(detailedErrorMessage);
         }
       }
 
       // Add the event locally for immediate feedback
       setCalendarEvents((prevEvents) => [...prevEvents, newEvent]);
+      alert("Event added successfully!");
     } catch (err: any) {
-      setError(err.message);
+      console.error("Failed to add event:", err);
+      setError(err.message); // Display the detailed error in the UI
+      alert(`Failed to add event: ${err.message}`);
     }
   };
 
@@ -235,7 +267,7 @@ export default function CalendarPage() {
             events={calendarEvents} // Use events from state
             editable={true} // Enable drag and drop
             selectable={true} // Enable date selection
-            dateClick={handleDateClick} // Add this line
+            dateClick={handleDateClick}
           />
         </div>
       </main>
