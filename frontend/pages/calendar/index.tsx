@@ -5,6 +5,10 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid"; // Month View
 import timeGridPlugin from "@fullcalendar/timegrid"; // Week and Day Views
 import interactionPlugin from "@fullcalendar/interaction"; // Drag and Drop
+import DateTimePicker from "react-datetime-picker";
+import "react-calendar/dist/Calendar.css";
+import "react-clock/dist/Clock.css";
+import "react-datetime-picker/dist/DateTimePicker.css";
 
 // Define calendar type
 type GoogleCalendar = {
@@ -21,10 +25,14 @@ type CalendarEvent = {
 };
 
 export default function CalendarPage() {
-  const [allCalendars, setAllCalendars] = useState<GoogleCalendar[]>([]); // List of all calendars
-  const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]); // Selected calendar IDs
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]); // Events from selected calendars
+  const [allCalendars, setAllCalendars] = useState<GoogleCalendar[]>([]);
+  const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [startTime, setStartTime] = useState<Date | null>(new Date());
+  const [endTime, setEndTime] = useState<Date | null>(new Date());
 
   // Fetch all calendars
   useEffect(() => {
@@ -123,7 +131,7 @@ export default function CalendarPage() {
     );
   };
 
-  const handleDateClick = async (info: any) => {
+  const handleDateClick = async () => {
     if (selectedCalendars.length === 0) {
       alert("Please select at least one calendar to add events.");
       return;
@@ -134,22 +142,15 @@ export default function CalendarPage() {
 
     const eventDescription = prompt("Enter event description (optional):");
 
-    const startTime = prompt(
-      "Enter start time (HH:MM, 24-hour format):",
-      "00:00"
-    );
-    const endTime = prompt("Enter end time (HH:MM, 24-hour format):", "23:59");
-
-    const startDateTime = `${info.dateStr}T${startTime || "00:00"}:00-05:00`; // Toronto time offset
-    const endDateTime = `${info.dateStr}T${endTime || "23:59"}:00-05:00`;
-
-    console.log(startDateTime);
-    console.log(endDateTime);
+    if (!startTime || !endTime) {
+      alert("Start and end times must be selected.");
+      return;
+    }
 
     const newEvent: CalendarEvent = {
       title: eventTitle,
-      start: startDateTime,
-      end: endDateTime,
+      start: startTime.toISOString(),
+      end: endTime.toISOString(),
       allDay: false,
       description: eventDescription || "",
     };
@@ -173,89 +174,86 @@ export default function CalendarPage() {
               summary: eventTitle,
               description: eventDescription,
               start: {
-                dateTime: startDateTime,
-                timeZone: "America/Toronto", // Specify the time zone explicitly
+                dateTime: startTime.toISOString(),
+                timeZone: "America/Toronto",
               },
               end: {
-                dateTime: endDateTime,
-                timeZone: "America/Toronto", // Specify the time zone explicitly
+                dateTime: endTime.toISOString(),
+                timeZone: "America/Toronto",
               },
             }),
           }
         );
 
         if (!response.ok) {
-          // Parse the error response for details
           const errorDetail = await response.json();
-          console.error("Error response:", errorDetail);
-
-          // Construct a detailed error message
-          const detailedErrorMessage = `
-            Failed to add event to calendar: ${calendarId}.
-            Status: ${response.status} (${response.statusText})
-            API Message: ${
+          throw new Error(
+            `Failed to add event to calendar: ${calendarId}. ${
               errorDetail.error?.message || "No additional details provided."
-            }
-            Suggested Resolution: ${
-              response.status === 401
-                ? "Check authentication and ensure the token is valid."
-                : response.status === 403
-                ? "Ensure the user has write access to this calendar."
-                : "Review the error message and API documentation."
-            }
-          `;
-
-          throw new Error(detailedErrorMessage);
+            }`
+          );
         }
       }
 
-      // Add the event locally for immediate feedback
       setCalendarEvents((prevEvents) => [...prevEvents, newEvent]);
       alert("Event added successfully!");
     } catch (err: any) {
       console.error("Failed to add event:", err);
-      setError(err.message); // Display the detailed error in the UI
+      setError(err.message);
       alert(`Failed to add event: ${err.message}`);
     }
   };
 
   return (
     <div className="bg-gray-900 text-white min-h-screen flex flex-col">
-      {/* Navbar */}
       <Navbar />
-
-      {/* Main Content */}
       <main className="flex-1 flex flex-col max-w-7xl mx-auto px-4 py-8 h-screen w-screen">
         <h1 className="text-3xl font-bold mb-6">My Calendar</h1>
-
-        {error && (
-          <p className="text-red-500 mb-4">
-            Error: {error}. Please ensure you're authenticated and try again.
-          </p>
-        )}
-
-        {/* Calendar List */}
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold mb-4">Select Calendars</h2>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {allCalendars.map((calendar) => (
-              <div
-                key={calendar.id}
-                onClick={() => handleCalendarSelection(calendar.id)}
-                className={`cursor-pointer border-2 rounded-lg px-4 py-2 flex items-center justify-center text-center transition duration-200 ${
-                  selectedCalendars.includes(calendar.id)
-                    ? "bg-blue-500 text-white border-blue-500 hover:bg-blue-600"
-                    : "bg-gray-700 text-gray-200 border-gray-600 hover:bg-gray-600"
-                }`}
-              >
-                {calendar.summary}
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Add Event
+        </button>
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+            <div className="bg-white rounded-lg p-6 shadow-lg">
+              <h2 className="text-lg font-semibold mb-4">Select Event Times</h2>
+              <div className="mb-4">
+                <label className="block mb-2 font-medium">Start Time:</label>
+                <DateTimePicker
+                  onChange={setStartTime}
+                  value={startTime}
+                  format="y-MM-dd h:mm a"
+                />
               </div>
-            ))}
+              <div className="mb-4">
+                <label className="block mb-2 font-medium">End Time:</label>
+                <DateTimePicker
+                  onChange={setEndTime}
+                  value={endTime}
+                  format="y-MM-dd h:mm a"
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDateClick}
+                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* Calendar Display */}
-        <div className="flex-1 bg-gray-800 rounded-md overflow-hidden">
+        )}
+        <div className="flex-1 bg-gray-800 rounded-md overflow-hidden mt-4">
           <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
@@ -264,14 +262,12 @@ export default function CalendarPage() {
               center: "title",
               right: "dayGridMonth,timeGridWeek,timeGridDay",
             }}
-            events={calendarEvents} // Use events from state
-            editable={true} // Enable drag and drop
-            selectable={true} // Enable date selection
-            dateClick={handleDateClick}
+            events={calendarEvents}
+            editable={true}
+            selectable={true}
           />
         </div>
       </main>
-
       <Footer />
     </div>
   );
