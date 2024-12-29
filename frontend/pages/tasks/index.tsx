@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import { useEffect, useState } from "react";
 import dotenv from "dotenv";
+import Footer from "@/components/Footer";
 
 dotenv.config();
 
@@ -21,7 +22,7 @@ export default function TasksPage() {
   const [dueDate, setDueDate] = useState("");
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
   const [status, setStatus] = useState<"PENDING" | "IN_PROGRESS" | "COMPLETED">(
-    "PENDING",
+    "PENDING"
   );
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
@@ -36,7 +37,7 @@ export default function TasksPage() {
               "Content-Type": "application/json",
               Accept: "application/json",
             },
-          },
+          }
         );
 
         if (!response.ok) {
@@ -71,7 +72,7 @@ export default function TasksPage() {
               status,
               userId: 1,
             }),
-          },
+          }
         );
 
         if (!response.ok) {
@@ -119,13 +120,13 @@ export default function TasksPage() {
               status,
               userId: 1, // Replace with actual user ID if dynamic
             }),
-          },
+          }
         );
 
         if (!response.ok) {
           const errorMessage = await response.text();
           console.error(
-            `HTTP error! status: ${response.status}, message: ${errorMessage}`,
+            `HTTP error! status: ${response.status}, message: ${errorMessage}`
           );
           throw new Error(errorMessage);
         }
@@ -133,8 +134,8 @@ export default function TasksPage() {
         const updatedTask = await response.json();
         setTasks((prevTasks) =>
           prevTasks.map((task) =>
-            task.id === editingTask.id ? updatedTask : task,
-          ),
+            task.id === editingTask.id ? updatedTask : task
+          )
         );
 
         setEditingTask(null);
@@ -174,7 +175,7 @@ export default function TasksPage() {
             ...task,
             status: task.status === "COMPLETED" ? "IN_PROGRESS" : "COMPLETED",
           }),
-        },
+        }
       );
 
       if (!response.ok) {
@@ -183,7 +184,7 @@ export default function TasksPage() {
 
       const updatedTask = await response.json();
       setTasks((prevTasks) =>
-        prevTasks.map((task) => (task.id === id ? updatedTask : task)),
+        prevTasks.map((task) => (task.id === id ? updatedTask : task))
       );
     } catch (error) {
       console.error("Error toggling task completion:", error);
@@ -199,7 +200,7 @@ export default function TasksPage() {
           headers: {
             "Content-Type": "application/json",
           },
-        },
+        }
       );
 
       if (!response.ok) {
@@ -376,12 +377,7 @@ export default function TasksPage() {
         </section>
       </main>
 
-      <footer className="bg-gray-800 text-center py-4">
-        <p className="text-gray-400">
-          &copy; {new Date().getFullYear()} ProductivityMate. All rights
-          reserved.
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 }
