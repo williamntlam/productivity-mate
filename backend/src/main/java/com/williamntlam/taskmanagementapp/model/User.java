@@ -14,13 +14,13 @@ public class User {
   private PomodoroSettings pomodoroSettings;
 
   @Column(nullable = false, unique = true)
-    private String email;
+  private String email;
 
-    @Column(nullable = false)
-    private String firstName;
+  @Column(nullable = false)
+  private String firstName;
 
-    @Column(nullable = false)
-    private String lastName;
+  @Column(nullable = false)
+  private String lastName;
 
   public Long getId() {
 
@@ -61,5 +61,4 @@ public class User {
 
     this.lastName = name;
   }
-
 }
