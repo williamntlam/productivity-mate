@@ -15,6 +15,7 @@ type GoogleCalendar = {
 };
 
 type CalendarEvent = {
+  id?: string; // Add id for Google Calendar events
   title: string;
   start: string;
   end: string;
@@ -100,6 +101,7 @@ export default function CalendarPage() {
 
         const data = await response.json();
         const transformedEvents = data.items.map((event: any) => ({
+          id: event.id, // Store event id for deletion
           title: event.summary || "No Title",
           start: event.start.dateTime || event.start.date,
           end: event.end.dateTime || event.end.date,
@@ -184,7 +186,12 @@ export default function CalendarPage() {
         );
       }
 
-      setCalendarEvents((prevEvents) => [...prevEvents, newEvent]);
+      const savedEvent = await response.json();
+
+      setCalendarEvents((prevEvents) => [
+        ...prevEvents,
+        { ...newEvent, id: savedEvent.id },
+      ]); // Add the new event to state with its id
       alert("Event added successfully!");
     } catch (err: any) {
       setError(err.message);
@@ -192,6 +199,49 @@ export default function CalendarPage() {
     }
 
     setIsModalOpen(false); // Close modal
+  };
+
+  const handleEventClick = async (info: any) => {
+    if (!selectedCalendar) return;
+
+    const eventId = info.event.id;
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete the event "${info.event.title}"?`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        throw new Error("User is not authenticated. Access token missing.");
+      }
+
+      const response = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/${selectedCalendar}/events/${eventId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete the event.");
+      }
+
+      // Remove the event from the state
+      setCalendarEvents((prevEvents) =>
+        prevEvents.filter((event) => event.id !== eventId)
+      );
+
+      alert("Event deleted successfully!");
+    } catch (err: any) {
+      setError(err.message);
+      alert(`Failed to delete event: ${err.message}`);
+    }
   };
 
   return (
@@ -220,80 +270,6 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {isModalOpen && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-            onClick={() => setIsModalOpen(false)}
-          >
-            <div
-              className="bg-gray-800 rounded-lg p-6 shadow-lg z-60"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 className="text-lg font-semibold mb-4">Add Event</h2>
-              <div className="mb-4">
-                <label className="block font-medium">Event Title:</label>
-                <input
-                  type="text"
-                  value={eventTitle}
-                  onChange={(e) => setEventTitle(e.target.value)}
-                  className="w-full p-2 bg-gray-200 text-black rounded"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block font-medium">Description:</label>
-                <textarea
-                  value={eventDescription}
-                  onChange={(e) => setEventDescription(e.target.value)}
-                  className="w-full p-2 bg-gray-200 text-black rounded"
-                  rows={3}
-                ></textarea>
-              </div>
-              <div className="mb-4">
-                <label className="block font-medium">Start Time:</label>
-                <DatePicker
-                  selected={startTime}
-                  onChange={(date) => setStartTime(date)}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Time"
-                  dateFormat="h:mm aa"
-                  className="w-full p-2 bg-gray-200 text-black rounded"
-                  popperClassName="react-datepicker-popper"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block font-medium">End Time:</label>
-                <DatePicker
-                  selected={endTime}
-                  onChange={(date) => setEndTime(date)}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Time"
-                  dateFormat="h:mm aa"
-                  className="w-full p-2 bg-gray-200 text-black rounded"
-                  popperClassName="react-datepicker-popper"
-                />
-              </div>
-              <div className="flex justify-end">
-                <button
-                  className="bg-gray-500 text-white px-4 py-2 rounded mr-2"
-                  onClick={() => setIsModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="bg-blue-500 text-white px-4 py-2 rounded"
-                  onClick={handleAddEvent}
-                >
-                  Confirm
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
         <div className="bg-gray-800 rounded-md mt-4 overflow-hidden flex-1">
           <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -307,6 +283,7 @@ export default function CalendarPage() {
             editable
             selectable
             dateClick={handleDateClick}
+            eventClick={handleEventClick}
           />
         </div>
       </main>
