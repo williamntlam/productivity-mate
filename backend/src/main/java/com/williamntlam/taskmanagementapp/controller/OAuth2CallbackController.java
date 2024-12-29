@@ -1,5 +1,6 @@
 package com.williamntlam.taskmanagementapp.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -11,6 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+
+import com.williamntlam.taskmanagementapp.service.UserService;
+
+import com.williamntlam.taskmanagementapp.model.User;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +38,12 @@ public class OAuth2CallbackController {
 
     @Value("${spring.security.oauth2.client.provider.google.user-info-uri}")
     private String userInfoUri;
+
+    private UserService userService; 
+
+    public OAuth2CallbackController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping("/google")
     public ResponseEntity<?> handleOAuth2Callback(@RequestBody Map<String, String> body) {
@@ -84,6 +95,21 @@ public class OAuth2CallbackController {
                     result.put("accessToken", accessToken);
                     result.put("refreshToken", refreshToken);
                     result.put("userInfo", userInfo);
+
+                    // Extract email and name from userInfo
+                    String email = (String) userInfo.get("email"); 
+                    String firstName = (String) userInfo.get("given_name"); 
+                    String lastName = (String) userInfo.get("family_name");
+
+
+                    // Check if the user exists in the database; if not, register them
+                    if (!userService.emailExists(email)) {
+                        User newUser = new User();
+                        newUser.setEmail(email);
+                        newUser.setFirstName(firstName);
+                        newUser.setLastName(lastName);
+                        userService.registerUser(newUser); // Save user to database
+                    }
 
                     return ResponseEntity.ok(result);
                 } else {

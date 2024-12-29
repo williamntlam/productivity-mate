@@ -42,14 +42,6 @@ public class UserController {
         String name = oidcUser.getFullName();
         String picture = oidcUser.getPicture();
 
-        // Check if the user exists in the database; if not, register them
-        if (!userService.emailExists(email)) {
-            User newUser = new User();
-            newUser.setEmail(email);
-            newUser.setName(name);
-            userService.registerUser(newUser); // Save user to database
-        }
-
         // Create a response with user details and OAuth tokens
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");

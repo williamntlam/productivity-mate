@@ -1,10 +1,6 @@
 package com.williamntlam.taskmanagementapp.model;
 
 import jakarta.persistence.*;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 
 @Entity
 @Table(name = "Users") // Rename the table to 'users'
@@ -17,8 +13,14 @@ public class User {
   @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
   private PomodoroSettings pomodoroSettings;
 
-  private String email;
-  private String name;
+  @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
 
   public Long getId() {
 
@@ -40,14 +42,24 @@ public class User {
     this.email = email;
   }
 
-  public String getName() {
+  public String getFirstName() {
 
-    return name;
+    return firstName;
   }
 
-  public void setName(String name) {
+  public void setFirstName(String name) {
 
-    this.name = name;
+    this.firstName = name;
+  }
+
+  public String getLastName() {
+
+    return lastName;
+  }
+
+  public void setLastName(String name) {
+
+    this.lastName = name;
   }
 
 }
