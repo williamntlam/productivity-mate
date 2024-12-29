@@ -32,7 +32,7 @@ export default function CalendarPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [endTime, setEndTime] = useState<Date | null>(null);
-  const [clickedDate, setClickedDate] = useState<string>("");
+  const [clickedDate, setClickedDate] = useState<Date | null>(null);
   const [eventTitle, setEventTitle] = useState<string>("");
   const [eventDescription, setEventDescription] = useState<string>("");
 
@@ -121,8 +121,8 @@ export default function CalendarPage() {
   const handleDateClick = (info: any) => {
     const clickedDate = new Date(info.dateStr);
     clickedDate.setDate(clickedDate.getDate() + 1);
-    setClickedDate(clickedDate.toISOString().split("T")[0]);
-    setStartTime(clickedDate); // Initialize start time with local time
+    setClickedDate(clickedDate);
+    setStartTime(new Date(clickedDate.getTime())); // Initialize start time with clicked date
     setEndTime(new Date(clickedDate.getTime() + 60 * 60 * 1000)); // Add 1 hour for the end time
     setEventTitle(""); // Reset event title
     setEventDescription(""); // Reset event description
@@ -142,8 +142,8 @@ export default function CalendarPage() {
 
     const newEvent: CalendarEvent = {
       title: eventTitle,
-      start: startTime?.toISOString() || clickedDate,
-      end: endTime?.toISOString() || clickedDate,
+      start: startTime?.toISOString() || "",
+      end: endTime?.toISOString() || "",
       allDay: false,
       description: eventDescription,
     };
@@ -166,11 +166,11 @@ export default function CalendarPage() {
             summary: eventTitle,
             description: eventDescription,
             start: {
-              dateTime: startTime?.toISOString() || clickedDate,
+              dateTime: startTime?.toISOString(),
               timeZone: "America/Toronto",
             },
             end: {
-              dateTime: endTime?.toISOString() || clickedDate,
+              dateTime: endTime?.toISOString(),
               timeZone: "America/Toronto",
             },
           }),
@@ -269,6 +269,78 @@ export default function CalendarPage() {
             ))}
           </div>
         </div>
+
+        {isModalOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+            onClick={() => setIsModalOpen(false)}
+          >
+            <div
+              className="bg-gray-800 rounded-lg p-6 shadow-lg z-60"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-lg font-semibold mb-4">Add Event</h2>
+              <div className="mb-4">
+                <label className="block font-medium">Event Title:</label>
+                <input
+                  type="text"
+                  value={eventTitle}
+                  onChange={(e) => setEventTitle(e.target.value)}
+                  className="w-full p-2 bg-gray-200 text-black rounded"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block font-medium">Description:</label>
+                <textarea
+                  value={eventDescription}
+                  onChange={(e) => setEventDescription(e.target.value)}
+                  className="w-full p-2 bg-gray-200 text-black rounded"
+                  rows={3}
+                ></textarea>
+              </div>
+              <div className="mb-4">
+                <label className="block font-medium">Start Time:</label>
+                <DatePicker
+                  selected={startTime}
+                  onChange={(date) => setStartTime(date)}
+                  showTimeSelect
+                  showTimeSelectOnly
+                  timeIntervals={15}
+                  timeCaption="Time"
+                  dateFormat="h:mm aa"
+                  className="w-full p-2 bg-gray-200 text-black rounded"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block font-medium">End Time:</label>
+                <DatePicker
+                  selected={endTime}
+                  onChange={(date) => setEndTime(date)}
+                  showTimeSelect
+                  showTimeSelectOnly
+                  timeIntervals={15}
+                  timeCaption="Time"
+                  dateFormat="h:mm aa"
+                  className="w-full p-2 bg-gray-200 text-black rounded"
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  className="bg-gray-500 text-white px-4 py-2 rounded mr-2"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                  onClick={handleAddEvent}
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="bg-gray-800 rounded-md mt-4 overflow-hidden flex-1">
           <FullCalendar
