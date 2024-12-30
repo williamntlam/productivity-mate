@@ -1,8 +1,17 @@
+import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { useState, useEffect } from "react";
 
+type UserProfile = {
+  name: string;
+  email: string;
+  avatar: string;
+  firstName: string;
+  lastName: string;
+};
+
 export default function ProfilePage() {
-  const [userProfile, setUserProfile] = useState({
+  const [userProfile, setUserProfile] = useState<UserProfile>({
     name: "",
     email: "",
     avatar: "",
@@ -10,22 +19,65 @@ export default function ProfilePage() {
     lastName: "",
   });
 
-  useEffect(() => {
-    // Fetch user profile from localStorage
-    const storedName = localStorage.getItem("name");
-    const storedEmail = localStorage.getItem("email");
-    const storedAvatar = localStorage.getItem("avatar");
-    const storedFirstName = localStorage.getItem("firstName");
-    const storedLastName = localStorage.getItem("lastName");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
 
-    setUserProfile({
-      name: storedName || "Unknown User",
-      email: storedEmail || "No email provided",
-      avatar: storedAvatar || "/avatar-placeholder.png",
-      firstName: storedFirstName || "",
-      lastName: storedLastName || "",
-    });
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const accessToken = localStorage.getItem("accessToken");
+        if (!accessToken) {
+          throw new Error("Access token not found. Please log in again.");
+        }
+
+        const response = await fetch(
+          `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/users/info`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch user info: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        setUserProfile({
+          name: data.name || "Unknown User",
+          email: data.email || "No email provided",
+          avatar: data.picture || "/avatar-placeholder.png",
+          firstName: data.firstName || "",
+          lastName: data.lastName || "",
+        });
+        setLoading(false);
+      } catch (err: any) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+        <p className="text-xl">Loading...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+        <p className="text-xl text-red-500">Error: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-900 text-white min-h-screen flex flex-col">
@@ -53,12 +105,7 @@ export default function ProfilePage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-center py-4">
-        <p className="text-gray-400">
-          &copy; {new Date().getFullYear()} ProductivityMate. All rights
-          reserved.
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 }
