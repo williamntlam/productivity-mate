@@ -38,11 +38,6 @@ const GoogleOAuthCallback = () => {
 
         const data = await response.json();
 
-        localStorage.setItem("name", data.userInfo.name);
-        localStorage.setItem("email", data.userInfo.email);
-        localStorage.setItem("firstName", data.userInfo.given_name);
-        localStorage.setItem("lastName", data.userInfo.family_name);
-        localStorage.setItem("avatar", data.userInfo.picture);
         localStorage.setItem("accessToken", data.accessToken);
 
         // Redirect the user or save tokens as needed
