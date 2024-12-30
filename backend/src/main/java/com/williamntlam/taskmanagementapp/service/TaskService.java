@@ -1,7 +1,9 @@
 package com.williamntlam.taskmanagementapp.service;
 
 import com.williamntlam.taskmanagementapp.model.Task;
+import com.williamntlam.taskmanagementapp.model.User;
 import com.williamntlam.taskmanagementapp.repository.TaskRepository;
+import com.williamntlam.taskmanagementapp.repository.UserRepository;
 import com.williamntlam.taskmanagementapp.utils.Enums.TaskPriority;
 import com.williamntlam.taskmanagementapp.utils.Enums.TaskStatus;
 import java.util.Date;
@@ -16,12 +18,13 @@ import org.springframework.stereotype.Service;
 public class TaskService {
 
   private final TaskRepository taskRepository;
+  private final UserRepository userRepository;
 
-  @Autowired
-  public TaskService(TaskRepository taskRepository) {
-
-    this.taskRepository = taskRepository;
-  }
+    @Autowired
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository) {
+        this.taskRepository = taskRepository;
+        this.userRepository = userRepository;
+    }
 
   public Task createTask(Task task) {
 
@@ -77,4 +80,14 @@ public class TaskService {
 
     taskRepository.deleteById(id);
   }
+
+  public List<Task> getTasksByUserId(Long userId) {
+    // Fetch the User entity by ID
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    // Use the User entity to fetch tasks
+    return taskRepository.findByUser(user);
+}
+
+
 }

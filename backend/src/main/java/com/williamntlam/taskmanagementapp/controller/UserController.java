@@ -1,16 +1,18 @@
 package com.williamntlam.taskmanagementapp.controller;
 
+import com.williamntlam.taskmanagementapp.model.Task;
+import com.williamntlam.taskmanagementapp.service.TaskService;
 import com.williamntlam.taskmanagementapp.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -19,10 +21,19 @@ import org.springframework.web.client.RestTemplate;
 public class UserController {
 
   private final UserService userService;
+  private final TaskService taskService;
+
 
   @Autowired
-  public UserController(UserService userService) {
+  public UserController(UserService userService, TaskService taskService) {
     this.userService = userService;
+    this.taskService = taskService;
+  }
+
+  @GetMapping("/{userId}/tasks")
+  public ResponseEntity<List<Task>> getTasksByUserId(@PathVariable Long userId) {
+      List<Task> tasks = taskService.getTasksByUserId(userId);
+      return ResponseEntity.ok(tasks);
   }
 
   @GetMapping("/info")

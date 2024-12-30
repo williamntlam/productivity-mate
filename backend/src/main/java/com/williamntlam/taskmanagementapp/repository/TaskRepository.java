@@ -1,6 +1,7 @@
 package com.williamntlam.taskmanagementapp.repository;
 
 import com.williamntlam.taskmanagementapp.model.Task;
+import com.williamntlam.taskmanagementapp.model.User;
 import com.williamntlam.taskmanagementapp.utils.Enums.TaskPriority;
 import com.williamntlam.taskmanagementapp.utils.Enums.TaskStatus;
 import java.util.Date;
@@ -22,4 +23,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
   List<Task> findByPriorityAndStatus(TaskPriority priority, TaskStatus status);
 
   Page<Task> findAll(Pageable pageable);
+
+  List<Task> findByUser(User user);
+
 }
