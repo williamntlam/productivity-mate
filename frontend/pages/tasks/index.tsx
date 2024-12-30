@@ -57,6 +57,31 @@ export default function TasksPage() {
   const addTask = async () => {
     if (title.trim() && description.trim() && dueDate.trim()) {
       try {
+        const accessToken = localStorage.getItem("accessToken");
+        if (!accessToken) {
+          return;
+        }
+
+        // Fetch the user ID from the backend
+        const userIdResponse = await fetch(
+          `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/users/id`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const userIdData = await userIdResponse.json();
+        console.log(userIdData);
+        const userId = userIdData.userId;
+
+        if (!userId) {
+          throw new Error("No user ID returned from backend");
+        }
+
         const response = await fetch(
           `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/tasks`,
           {
@@ -70,7 +95,7 @@ export default function TasksPage() {
               dueDate,
               priority,
               status,
-              userId: 1,
+              userId: userId,
             }),
           }
         );
