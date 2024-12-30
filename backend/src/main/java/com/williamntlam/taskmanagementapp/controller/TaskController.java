@@ -6,6 +6,8 @@ import com.williamntlam.taskmanagementapp.service.TaskService;
 import com.williamntlam.taskmanagementapp.service.UserService;
 import com.williamntlam.taskmanagementapp.utils.Enums.TaskPriority;
 import com.williamntlam.taskmanagementapp.utils.Enums.TaskStatus;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.Date;
 import java.util.List;
@@ -16,8 +18,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -95,15 +109,69 @@ public class TaskController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Task> updateTask(
-      @PathVariable Long id, @Valid @RequestBody Task updatedTask) {
-    try {
-      Task task = taskService.updateTask(id, updatedTask);
-      return ResponseEntity.ok(task);
-    } catch (IllegalArgumentException e) {
-      return ResponseEntity.notFound().build();
+public ResponseEntity<Task> updateTask(
+    @PathVariable Long id,
+    @Valid @RequestBody Task updatedTask,
+    HttpServletRequest request) {
+  try {
+    // Step 1: Extract and validate Authorization header
+    String authHeader = request.getHeader("Authorization");
+    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+      throw new RuntimeException("Missing or invalid Authorization header");
     }
+
+    String accessToken = authHeader.substring(7); // Extract token
+    System.out.println("Access Token: " + accessToken);
+
+    // Step 2: Call Google Userinfo API to fetch user email
+    String userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
+    RestTemplate restTemplate = new RestTemplate();
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Authorization", "Bearer " + accessToken);
+
+    HttpEntity<String> entity = new HttpEntity<>(headers);
+
+    ResponseEntity<Map> responseEntity =
+        restTemplate.exchange(userInfoUrl, HttpMethod.GET, entity, Map.class);
+    Map<String, Object> userInfo = responseEntity.getBody();
+
+    if (userInfo == null) {
+      throw new RuntimeException("Userinfo API returned null");
+    }
+
+    String emailFromApi = (String) userInfo.get("email");
+    System.out.println("Email from Google API: " + emailFromApi);
+
+    // Step 3: Find user by email in the local database
+    Optional<Long> userIdOptional = userService.findByEmail(emailFromApi);
+
+    if (userIdOptional.isEmpty()) {
+      throw new RuntimeException("No user found with the provided email");
+    }
+
+    Long userId = userIdOptional.get();
+
+    Optional<Task> optionalTask = taskService.getTaskById(id); // Returns Optional<Task>
+    if (optionalTask.isEmpty()) {
+        return ResponseEntity.notFound().build();
+    }
+
+    Task existingTask = optionalTask.get();
+
+    if (!existingTask.getUser().getId().equals(userId)) {
+      return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
+    // Step 5: Update the task
+    Task task = taskService.updateTask(id, updatedTask);
+    return ResponseEntity.ok(task);
+
+  } catch (RuntimeException e) {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null); // Or handle specific exceptions
   }
+}
+
 
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
