@@ -207,13 +207,60 @@ public ResponseEntity<Task> updateTask(
 }
 
 
-  @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
+@DeleteMapping("/{id}")
+public ResponseEntity<Void> deleteTask(@PathVariable Long id, HttpServletRequest request) {
     try {
-      taskService.deleteTask(id);
-      return ResponseEntity.noContent().build();
-    } catch (EmptyResultDataAccessException e) {
-      return ResponseEntity.notFound().build();
+        // Step 1: Extract and validate Authorization header
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Missing or invalid Authorization header");
+        }
+
+        String accessToken = authHeader.substring(7); // Extract token
+        System.out.println("Access Token: " + accessToken);
+
+        // Step 2: Call Google Userinfo API to fetch user email
+        String userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<Map> responseEntity =
+            restTemplate.exchange(userInfoUrl, HttpMethod.GET, entity, Map.class);
+
+        Map<String, Object> userInfo = responseEntity.getBody();
+        if (userInfo == null) {
+            throw new RuntimeException("Userinfo API returned null");
+        }
+
+        String emailFromApi = (String) userInfo.get("email");
+        System.out.println("Email from Google API: " + emailFromApi);
+
+        // Step 3: Find user by email in the local database
+        Long userId = userService.findByEmail(emailFromApi)
+            .orElseThrow(() -> new RuntimeException("No user found with the provided email"));
+
+        // Step 4: Find the task by ID
+        Task existingTask = taskService.getTaskById(id)
+            .orElseThrow(() -> new RuntimeException("Task not found with ID: " + id));
+
+        // Step 5: Validate task ownership
+        if (!existingTask.getUser().getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // Step 6: Delete the task
+        taskService.deleteTask(id);
+        return ResponseEntity.noContent().build();
+
+    } catch (RuntimeException e) {
+        System.err.println("Error: " + e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
-  }
+}
+
+  
 }
