@@ -72,13 +72,18 @@ export default function RemindersPage() {
       }
 
       try {
+        const accessToken = localStorage.getItem("accessToken");
+        if (!accessToken) {
+          return;
+        }
+
         const addedReminder = await fetch(`${API_BASE_URL}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
           },
           body: JSON.stringify({
-            userId: 1,
             title,
             description,
             reminderDate,
