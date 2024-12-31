@@ -18,19 +18,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 import org.springframework.http.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
@@ -48,18 +40,60 @@ public class TaskController {
   }
 
   @PostMapping
-  public ResponseEntity<Task> createTask(@Valid @RequestBody Task task) {
-    // Fetch the user based on the userId
-    User user = userService.findById(task.getUserId());
+  public ResponseEntity<Task> createTask(@Valid @RequestBody Task task, HttpServletRequest request) {
+      // Extract Authorization header
+      String authHeader = request.getHeader("Authorization");
+      if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+          throw new RuntimeException("Missing or invalid Authorization header");
+      }
 
-    // Associate the user with the task
-    task.setUser(user);
+      String accessToken = authHeader.substring(7); // Extract the token
+      System.out.println("Access Token: " + accessToken);
 
-    // Save the task
-    Task createdTask = taskService.createTask(task);
+      // Call Google Userinfo API
+      String userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
+      RestTemplate restTemplate = new RestTemplate();
 
-    return ResponseEntity.ok(createdTask);
+      // Set up headers for the request
+      HttpHeaders headers = new HttpHeaders();
+      headers.set("Authorization", "Bearer " + accessToken);
+
+      HttpEntity<String> entity = new HttpEntity<>(headers);
+
+      try {
+          // Call the Userinfo API
+          ResponseEntity<Map> responseEntity =
+              restTemplate.exchange(userInfoUrl, HttpMethod.GET, entity, Map.class);
+          Map<String, Object> userInfo = responseEntity.getBody();
+
+          if (userInfo == null) {
+              throw new RuntimeException("Userinfo API returned null");
+          }
+
+          // Extract the user's email from the API response
+          String emailFromApi = (String) userInfo.get("email");
+
+          // Fetch the user ID from the database based on the email
+          Long userId = userService.findByEmail(emailFromApi)
+              .orElseThrow(() -> new RuntimeException("No user found with the provided email"));
+
+          // Fetch the User object using the user ID
+          User user = userService.findById(userId);
+
+          // Associate the user with the task
+          task.setUser(user);
+
+          // Save the task
+          Task createdTask = taskService.createTask(task);
+
+          return ResponseEntity.ok(createdTask);
+
+      } catch (Exception e) {
+          e.printStackTrace(); // Log the full stack trace for debugging
+          throw new RuntimeException("Error validating user with Google Userinfo API", e);
+      }
   }
+
 
   @GetMapping("/{id}")
   public ResponseEntity<Task> getTaskById(@PathVariable Long id) {

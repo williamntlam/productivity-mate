@@ -68,31 +68,13 @@ export default function TasksPage() {
           return;
         }
 
-        // Fetch the user ID from the backend
-        const userIdResponse = await fetch(
-          `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/users/id`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        const userIdData = await userIdResponse.json();
-        const userId = userIdData.userId;
-
-        if (!userId) {
-          throw new Error("No user ID returned from backend");
-        }
-
         const response = await fetch(
           `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/tasks`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
             },
             body: JSON.stringify({
               title,
@@ -100,7 +82,6 @@ export default function TasksPage() {
               dueDate,
               priority,
               status,
-              userId: userId,
             }),
           }
         );
