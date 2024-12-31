@@ -1,8 +1,10 @@
 package com.williamntlam.taskmanagementapp.controller;
 
 import com.williamntlam.taskmanagementapp.model.Task;
+import com.williamntlam.taskmanagementapp.model.Reminder;
 import com.williamntlam.taskmanagementapp.service.TaskService;
 import com.williamntlam.taskmanagementapp.service.UserService;
+import com.williamntlam.taskmanagementapp.service.ReminderService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
@@ -22,11 +24,13 @@ public class UserController {
 
   private final UserService userService;
   private final TaskService taskService;
+  private final ReminderService reminderService;
 
   @Autowired
-  public UserController(UserService userService, TaskService taskService) {
+  public UserController(UserService userService, TaskService taskService, ReminderService reminderService) {
     this.userService = userService;
     this.taskService = taskService;
+    this.reminderService = reminderService;
   }
 
   @GetMapping("/tasks")
@@ -71,6 +75,56 @@ public class UserController {
       // Step 4: Fetch tasks for the user by their ID
       List<Task> tasks = taskService.getTasksByUserId(userId);
       return ResponseEntity.ok(tasks);
+
+    } catch (Exception e) {
+      // Log the exception and return a 401 Unauthorized status
+      e.printStackTrace();
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+  }
+
+  @GetMapping("/reminders")
+  public ResponseEntity<List<Reminder>> getRemindersByAuthenticatedUser(
+      @RequestHeader("Authorization") String authHeader) {
+    // Step 1: Validate the Authorization header
+    if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    String accessToken = authHeader.substring(7); // Extract the token
+
+    try {
+      // Step 2: Call Google API to get the user's email
+      String userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
+      RestTemplate restTemplate = new RestTemplate();
+      HttpHeaders headers = new HttpHeaders();
+      headers.set("Authorization", "Bearer " + accessToken);
+
+      HttpEntity<String> entity = new HttpEntity<>(headers);
+      ResponseEntity<Map> response =
+          restTemplate.exchange(userInfoUrl, HttpMethod.GET, entity, Map.class);
+
+      if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      }
+
+      // Extract the email from the Google API response
+      String email = (String) response.getBody().get("email");
+      if (email == null) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      }
+
+      // Step 3: Find the user ID in the database using the email
+      Optional<Long> optionalUserId = reminderService.findByEmail(email);
+      if (optionalUserId.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+      }
+
+      Long userId = optionalUserId.get();
+
+      // Step 4: Fetch tasks for the user by their ID
+      List<Reminder> reminders = reminderService.getRemindersByUserId(userId);
+      return ResponseEntity.ok(reminders);
 
     } catch (Exception e) {
       // Log the exception and return a 401 Unauthorized status

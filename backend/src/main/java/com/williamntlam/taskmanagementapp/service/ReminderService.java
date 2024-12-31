@@ -1,6 +1,7 @@
 package com.williamntlam.taskmanagementapp.service;
 
 import com.williamntlam.taskmanagementapp.model.Reminder;
+import com.williamntlam.taskmanagementapp.model.Task;
 import com.williamntlam.taskmanagementapp.model.User;
 import com.williamntlam.taskmanagementapp.repository.ReminderRepository;
 import com.williamntlam.taskmanagementapp.repository.UserRepository;
@@ -97,5 +98,20 @@ public class ReminderService {
     calendar.setTime(currentReminderDate);
     calendar.add(java.util.Calendar.DAY_OF_YEAR, repeatFrequencyDays);
     return calendar.getTime();
+  }
+
+  public Optional<Long> findByEmail(String email) {
+    Optional<User> user = userRepository.findByEmail(email);
+    return user.map(User::getId);
+  }
+
+  public List<Reminder> getRemindersByUserId(Long userId) {
+    // Fetch the User entity by ID
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    // Use the User entity to fetch tasks
+    return reminderRepository.findByUser(user);
   }
 }

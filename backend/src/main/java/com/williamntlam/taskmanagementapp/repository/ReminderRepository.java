@@ -1,6 +1,8 @@
 package com.williamntlam.taskmanagementapp.repository;
 
 import com.williamntlam.taskmanagementapp.model.Reminder;
+import com.williamntlam.taskmanagementapp.model.Task;
+import com.williamntlam.taskmanagementapp.model.User;
 import com.williamntlam.taskmanagementapp.utils.Enums.ReminderStatus;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +16,6 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
   List<Reminder> findByRepeatFrequencyDays(Integer repeatFrequencyDays);
 
   List<Reminder> findByReminderDateBefore(java.util.Date date);
+
+  List<Reminder> findByUser(User user);
 }
