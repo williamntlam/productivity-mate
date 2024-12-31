@@ -20,11 +20,11 @@ public class TaskService {
   private final TaskRepository taskRepository;
   private final UserRepository userRepository;
 
-    @Autowired
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository) {
-        this.taskRepository = taskRepository;
-        this.userRepository = userRepository;
-    }
+  @Autowired
+  public TaskService(TaskRepository taskRepository, UserRepository userRepository) {
+    this.taskRepository = taskRepository;
+    this.userRepository = userRepository;
+  }
 
   public Task createTask(Task task) {
 
@@ -83,11 +83,11 @@ public class TaskService {
 
   public List<Task> getTasksByUserId(Long userId) {
     // Fetch the User entity by ID
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
     // Use the User entity to fetch tasks
     return taskRepository.findByUser(user);
-}
-
-
+  }
 }
