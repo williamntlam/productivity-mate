@@ -174,12 +174,18 @@ export default function RemindersPage() {
       }
 
       try {
+        const accessToken = localStorage.getItem("accessToken");
+        if (!accessToken) {
+          return;
+        }
+
         const updatedReminder = await fetch(
           `${API_BASE_URL}/${editingReminder.id}`,
           {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
             },
             body: JSON.stringify({
               title,

@@ -91,26 +91,72 @@ public ResponseEntity<Reminder> createReminder(@RequestBody Reminder reminder, H
 }
 
 
-  @PutMapping("/{id}")
-  public ResponseEntity<Reminder> updateReminder(
-      @PathVariable Long id, @RequestBody Reminder updatedReminder) {
+@PutMapping("/{id}")
+public ResponseEntity<Reminder> updateReminder(
+        @PathVariable Long id,
+        @RequestBody Reminder updatedReminder,
+        HttpServletRequest request) {
+    try {
+        // Step 1: Extract and validate Authorization header
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
-    // Fetch the existing reminder from the database
-    Optional<Reminder> optionalReminder = reminderService.getReminderById(id);
-    if (optionalReminder.isEmpty()) {
-        return ResponseEntity.notFound().build();
+        String accessToken = authHeader.substring(7);
+
+        // Step 2: Call Google Userinfo API to fetch user email
+        String userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<Map> responseEntity = restTemplate.exchange(userInfoUrl, HttpMethod.GET, entity, Map.class);
+        Map<String, Object> userInfo = responseEntity.getBody();
+
+        if (userInfo == null || !responseEntity.getStatusCode().is2xxSuccessful()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // Extract email from the API response
+        String emailFromApi = (String) userInfo.get("email");
+        if (emailFromApi == null || emailFromApi.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        // Step 3: Fetch user details from the database
+        Long userId = userService.findByEmail(emailFromApi)
+                .orElseThrow(() -> new RuntimeException("No user found with the provided email"));
+
+        // Step 4: Fetch the existing reminder from the database
+        Optional<Reminder> optionalReminder = reminderService.getReminderById(id);
+        if (optionalReminder.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Reminder existingReminder = optionalReminder.get();
+
+        // Step 5: Validate ownership of the reminder
+        if (!existingReminder.getUser().getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // Step 6: Retain the user from the existing reminder and update fields
+        User user = existingReminder.getUser();
+        updatedReminder.setUser(user);
+
+        Reminder savedReminder = reminderService.updateReminder(updatedReminder);
+        return ResponseEntity.ok(savedReminder);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
-
-    // Retrieve the Reminder object if present
-    Reminder existingReminder = optionalReminder.get();
-
-    // Retain the user from the existing reminder
-    User user = existingReminder.getUser();
-    updatedReminder.setUser(user);
-
-    Reminder savedReminder = reminderService.updateReminder(updatedReminder);
-    return ResponseEntity.ok(savedReminder);
-  }
+}
+  
 
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteReminder(@PathVariable Long id, HttpServletRequest request) {
@@ -175,15 +221,4 @@ public ResponseEntity<Reminder> createReminder(@RequestBody Reminder reminder, H
     return ResponseEntity.ok(reminders);
   }
 
-  @GetMapping("/overdue")
-  public ResponseEntity<List<Reminder>> getOverdueReminders() {
-    List<Reminder> overdueReminders = reminderService.getOverdueReminders(new Date());
-    return ResponseEntity.ok(overdueReminders);
-  }
-
-  @GetMapping("/repeat-frequency/{days}")
-  public ResponseEntity<List<Reminder>> getRemindersByRepeatFrequency(@PathVariable Integer days) {
-    List<Reminder> reminders = reminderService.getRemindersByRepeatFrequency(days);
-    return ResponseEntity.ok(reminders);
-  }
 }
