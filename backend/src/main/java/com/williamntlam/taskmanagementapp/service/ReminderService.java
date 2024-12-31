@@ -28,10 +28,9 @@ public class ReminderService {
     return reminderRepository.findAll();
   }
 
-  public Reminder getReminderById(Long id) {
+  public Optional<Reminder> getReminderById(Long id) {
 
-    Optional<Reminder> reminder = reminderRepository.findById(id);
-    return reminder.orElse(null);
+    return reminderRepository.findById(id);
   }
 
   public Reminder saveReminder(Reminder reminder) {

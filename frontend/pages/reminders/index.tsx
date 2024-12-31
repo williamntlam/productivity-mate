@@ -128,10 +128,16 @@ export default function RemindersPage() {
 
   const deleteReminder = async (id: number) => {
     try {
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        return;
+      }
+
       const deletedReminder = await fetch(`${API_BASE_URL}/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
