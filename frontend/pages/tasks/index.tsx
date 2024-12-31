@@ -180,12 +180,18 @@ export default function TasksPage() {
     if (!task) return;
 
     try {
+      const accessToken = localStorage.getItem("accessToken");
+      if (!accessToken) {
+        return;
+      }
+
       const response = await fetch(
         `http://${process.env.NEXT_PUBLIC_BACKEND_URL}:${process.env.NEXT_PUBLIC_BACKEND_PORT}/api/tasks/${id}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
           },
           body: JSON.stringify({
             ...task,
